@@ -597,6 +597,7 @@ async function register(){
  if(pass.length<8)return msg("regMsg","Password must be at least 8 characters.","err");
  if(pass!==confirm)return msg("regMsg","Passwords do not match.","err");
  busy("regBtn","Creating...");
+ let accountCreated=false;
  try{
   let allUsers=await listRows(USERS_TABLE_ID),firstAccount=allUsers.length===0,refUser=null;
   if(!firstAccount){
@@ -638,19 +639,61 @@ async function register(){
     createdat:iso(new Date())
    }
   });
+  accountCreated=true;
 
   if(refUser){
-   await db.createRow({databaseId:DATABASE_ID,tableId:REFERRALS_TABLE_ID,rowId:ID.unique(),data:{referrerId:refUser.$id,referrerUsername:refUser.username,referredId:u.$id,referredUsername:username,status:"registered",createdat:iso(new Date())}});
+   try{
+    await db.createRow({
+     databaseId:DATABASE_ID,
+     tableId:REFERRALS_TABLE_ID,
+     rowId:ID.unique(),
+     data:{
+      referrerId:String(refUser.$id),
+      referrerusername:String(refUser.username||""),
+      referreduserId:String(u.$id),
+      referredusername:username,
+      referralcode:String(refUser.username||""),
+      status:"registered",
+      firstpurchase:false,
+      firstpurchaseamount:0,
+      bonusPercent:0,
+      bonusamount:0,
+      bonuspaid:false,
+      createdat:iso(new Date()),
+      activatedat:""
+     }
+    });
+   }catch(refErr){
+    console.log("Referral record:",refErr);
+   }
   }
 
-  $("loginEmail").value=email;$("loginPass").value="";$("regUsername").value="";$("regEmail").value="";$("regPhone").value="";$("regPass").value="";$("regConfirm").value="";
-  $("registerBox").classList.add("hide");$("loginBox").classList.remove("hide");
+  $("loginEmail").value=email;
+  $("loginPass").value="";
+  $("regUsername").value="";
+  $("regEmail").value="";
+  $("regPhone").value="";
+  $("regPass").value="";
+  $("regConfirm").value="";
+  $("registerBox").classList.add("hide");
+  $("loginBox").classList.remove("hide");
   msg("loginMsg","Account created. Sign in.","ok");
+
  }catch(e){
   console.log("Register:",e);
-  msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":"Registration could not be completed. Please try again.","err");
- }finally{ready("regBtn","Create Account")}
-}
+  if(accountCreated){
+   $("loginEmail").value=email;
+   $("loginPass").value="";
+   $("registerBox").classList.add("hide");
+   $("loginBox").classList.remove("hide");
+   msg("loginMsg","Account created. Sign in.","ok");
+  }else{
+   msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":"Registration could not be completed. Please try again.","err");
+  }
+ }finally{
+  ready("regBtn","Create Account");
+ }
+    }
 
 function logout(){
  clearInterval(sessionTimer);sessionTimer=null;clearInterval(liveTimer);liveTimer=null;
