@@ -364,22 +364,76 @@ async function purchase(id){
   console.log("Purchase:",e);
   msg("buyMsg",e.message==="INSUFFICIENT"?"Insufficient Wallet balance.":"Purchase could not be completed. Please try again.","err");
  }finally{purchaseBusy=false;ready("buyBtn","Confirm Purchase")}
-}
+  }
 
 async function creditReferral(inv){
  try{
-  let q=await listRows(REFERRALS_TABLE_ID,[Query.equal("referredId",user.$id)]),rr=q.find(x=>String(x.status||"").toLowerCase()==="registered");
+  if(!user||!inv)return;
+
+  let q=await listRows(
+   REFERRALS_TABLE_ID,
+   [Query.equal("referreduserId",String(user.$id))]
+  );
+
+  let rr=q.find(x=>
+   String(x.status||"").toLowerCase()==="registered" &&
+   String(x.firstpurchase).toLowerCase()!=="true"
+  );
+
   if(!rr)return;
-  let activeBefore=(await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",rr.referrerId),Query.equal("status","active")])).length,activeAfter=activeBefore+1;
-  await db.updateRow({databaseId:DATABASE_ID,tableId:REFERRALS_TABLE_ID,rowId:rr.$id,data:{status:"active",firstPurchaseId:inv.$id,firstPurchaseAmount:Number(inv.amount||0),activatedAt:iso(new Date())}});
-  let vip=vipForActive(activeAfter),commission=Math.floor(Number(inv.amount||0)*vip.ref/100);
+
+  let purchaseAmount=Number(inv.amount||0);
+  if(purchaseAmount<=0)return;
+
+  let activeRows=await listRows(
+   REFERRALS_TABLE_ID,
+   [
+    Query.equal("referrerId",String(rr.referrerId)),
+    Query.equal("status","active")
+   ]
+  );
+
+  let vip=vipForActive(activeRows.length+1);
+  let rate=Number(vip.ref||0);
+  let commission=Math.floor(purchaseAmount*rate/100);
+
+  let referrer=await db.getRow({
+   databaseId:DATABASE_ID,
+   tableId:USERS_TABLE_ID,
+   rowId:String(rr.referrerId)
+  });
+
   if(commission>0){
-   let rp=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:rr.referrerId});
-   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:rr.referrerId,data:{balance:Number(rp.balance||0)+commission,totalreferral:Number(rp.totalreferral||0)+commission}});
+   await db.updateRow({
+    databaseId:DATABASE_ID,
+    tableId:USERS_TABLE_ID,
+    rowId:String(rr.referrerId),
+    data:{
+     balance:Number(referrer.balance||0)+commission,
+     totalreferral:Number(referrer.totalreferral||0)+commission
+    }
+   });
   }
-  await db.updateRow({databaseId:DATABASE_ID,tableId:REFERRALS_TABLE_ID,rowId:rr.$id,data:{commission,commissionRate:vip.ref,viplevel:vip.level}});
- }catch(e){console.log("Referral:",e)}
-}
+
+  await db.updateRow({
+   databaseId:DATABASE_ID,
+   tableId:REFERRALS_TABLE_ID,
+   rowId:String(rr.$id),
+   data:{
+    status:"active",
+    firstpurchase:true,
+    firstpurchaseamount:purchaseAmount,
+    bonusPercent:rate,
+    bonusamount:commission,
+    bonuspaid:commission>0,
+    activatedat:iso(new Date())
+   }
+  });
+
+ }catch(e){
+  console.log("Referral commission error:",e);
+ }
+  }
   </script>
   <script>
 async function loadRecipients(){
