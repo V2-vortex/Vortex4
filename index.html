@@ -94,10 +94,10 @@ input{width:100%;padding:13px;border:1px solid #d5e1d2;border-radius:11px;backgr
 <div id="toast" class="toast"></div>
 
 <script>
-const{Client,TablesDB,ID,Query}=Appwrite;
+const{Client,Account,TablesDB,ID,Query}=Appwrite;
 const ENDPOINT="https://cloud.appwrite.io/v1",PROJECT_ID="6a903d26002edcba7c43",DATABASE_ID="6ab93e1f001b1a60b658";
 const USERS_TABLE_ID="6ab972e60038e2121462",DEPOSITS_TABLE_ID="6abc15840015fbc8ad75",WITHDRAWALS_TABLE_ID="6abc1c3d0006a5526d37",PRODUCTS_TABLE_ID="6abc2545003164242377",INVESTMENTS_TABLE_ID="6abc26e2000f85014be0",REFERRALS_TABLE_ID="6abcfb0b0027beb5cb1a",RECIPIENTS_TABLE_ID="6ac0a39600062c828059";
-const client=new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID),db=new TablesDB(client);
+const client=new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID),account=new Account(client),db=new TablesDB(client);
 let user=null,profile=null,currentScreen="home",selectedRecipient="",recipients=[],purchaseBusy=false,busyInvestment=false,liveTimer=null,sessionTimer=null,investmentRecords=[];
 const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString("en-UG"),iso=d=>new Date(d).toISOString();
 function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -648,6 +648,7 @@ async function login(){
  }finally{ready("loginBtn","Sign In")}
 }
 
+
 async function register(){
  let username=$("regUsername").value.trim(),email=$("regEmail").value.trim().toLowerCase(),phone=$("regPhone").value.trim(),pass=$("regPass").value,confirm=$("regConfirm").value;
  if(username.length<4)return msg("regMsg","Username must be at least 4 characters.","err");
@@ -656,7 +657,7 @@ async function register(){
  if(pass.length<8)return msg("regMsg","Password must be at least 8 characters.","err");
  if(pass!==confirm)return msg("regMsg","Passwords do not match.","err");
  busy("regBtn","Creating...");
- let accountCreated=false;
+ let accountCreated=false,authCreated=false,rowId=ID.unique();
  try{
   let allUsers=await listRows(USERS_TABLE_ID),firstAccount=allUsers.length===0,refUser=null;
   if(!firstAccount){
@@ -672,7 +673,9 @@ async function register(){
   if(allUsers.some(x=>String(x.email||"").trim().toLowerCase()===email))throw Error("EMAIL_EXISTS");
   if(allUsers.some(x=>String(x.username||"").trim().toLowerCase()===username.toLowerCase()))throw Error("USERNAME_EXISTS");
 
-  let rowId=ID.unique();
+  await account.create(rowId,email,pass,username);
+  authCreated=true;
+
   let u=await db.createRow({
    databaseId:DATABASE_ID,
    tableId:USERS_TABLE_ID,
@@ -747,12 +750,17 @@ async function register(){
    $("loginBox").classList.remove("hide");
    msg("loginMsg","Account created. Sign in.","ok");
   }else{
-   msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":"Registration could not be completed. Please try again.","err");
+   let errorText=String(e.message||"").toLowerCase();
+   let duplicate=errorText.includes("already exists")||errorText.includes("same email")||errorText.includes("same id");
+   msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":duplicate?"This email or account already exists in Appwrite Auth. Do not retry with this email.":"Registration could not be completed. Please try again.","err");
   }
  }finally{
   ready("regBtn","Create Account");
  }
-    }
+                                                                                              }
+    
+
+  
 
 function logout(){
  clearInterval(sessionTimer);sessionTimer=null;clearInterval(liveTimer);liveTimer=null;
