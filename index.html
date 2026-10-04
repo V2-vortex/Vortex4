@@ -61,7 +61,7 @@ input{width:100%;padding:13px;border:1px solid #d5e1d2;border-radius:11px;backgr
 
 <div id="homeScreen" class="screen">
 <div class="wrap">
-<div class="top"><div><div class="brand">VORTEX</div><div class="tag">ENJOY YOUR RIDE</div></div><div class="topRight">Welcome<b id="headName">Elyte</b></div></div>
+<div class="top"><div><div class="brand">VORTEX</div><div class="tag">ENJOY YOUR RIDE</div></div><div class="topRight">Welcome - <b id="headName"></b></div></div>
 <div class="card balanceCard"><div class="label">Wallet</div><div class="big">UGX <span id="wallet">0</span></div></div>
 <div class="card"><div class="label">Balance</div><div class="big">UGX <span id="balance">0</span></div></div>
 <div class="actions">
@@ -169,10 +169,10 @@ async function updateUser(data){
 
 function updateHeader(){
  let p=profile||{};
- if($("headName"))$("headName").textContent=p.displayname||p.username||"Elyte";
+ if($("headName"))$("headName").textContent=(p.username||"")+" 👋👋";
  if($("wallet"))$("wallet").textContent=fmt(p.wallet);
  if($("balance"))$("balance").textContent=fmt(p.balance);
-}
+  }
 
 async function syncWallet(){
  if(!user||!profile)return;
@@ -194,9 +194,22 @@ function vipForActive(n){
 
 async function getVipForUser(uid){
  try{
-  let r=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",uid),Query.equal("status","active")]);
-  return vipForActive(r.length)
- }catch(e){console.log("VIP:",e);return VIP_LEVELS[0]}
+  let refs=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",String(uid))]);
+  let inv=await listRows(INVESTMENTS_TABLE_ID,[]);
+  let purchased=new Set(
+   inv
+    .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
+    .map(x=>String(x.userId||""))
+  );
+  let active=refs.filter(r=>{
+   let rid=String(r.referreduserId||"");
+   return String(r.status||"").toLowerCase()==="active"||purchased.has(rid);
+  }).length;
+  return vipForActive(active)
+ }catch(e){
+  console.log("VIP:",e);
+  return VIP_LEVELS[0]
+ }
 }
 
 async function syncVip(){
@@ -385,16 +398,8 @@ async function creditReferral(inv){
   let purchaseAmount=Number(inv.amount||0);
   if(purchaseAmount<=0)return;
 
-  let activeRows=await listRows(
-   REFERRALS_TABLE_ID,
-   [
-    Query.equal("referrerId",String(rr.referrerId)),
-    Query.equal("status","active")
-   ]
-  );
-
-  let vip=vipForActive(activeRows.length+1);
-  let rate=Number(vip.ref||0);
+  let currentVip=await getVipForUser(rr.referrerId);
+  let rate=Number(currentVip.ref||0);
   let commission=Math.floor(purchaseAmount*rate/100);
 
   let referrer=await db.getRow({
@@ -433,7 +438,7 @@ async function creditReferral(inv){
  }catch(e){
   console.log("Referral commission error:",e);
  }
-  }
+ }
   </script>
   <script>
 async function loadRecipients(){
