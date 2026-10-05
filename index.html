@@ -217,16 +217,28 @@ async function getVipForUser(uid){
    [Query.equal("referrerId",String(uid))]
   );
 
-  let active=refs.filter(r=>
-   String(r.status||"").toLowerCase()==="active"
-  ).length;
+  let inv=await listRows(
+   INVESTMENTS_TABLE_ID,
+   []
+  );
+
+  let purchased=new Set(
+   inv
+    .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
+    .map(x=>String(x.userId||""))
+  );
+
+  let active=refs.filter(r=>{
+   let rid=String(r.referreduserId||"");
+   return String(r.status||"").toLowerCase()==="active"||purchased.has(rid);
+  }).length;
 
   return vipForActive(active);
  }catch(e){
   console.log("VIP:",e);
   return VIP_LEVELS[0];
  }
-  }
+                                   }
 
 async function syncVip(){
  if(!user||!profile)return VIP_LEVELS[0];
