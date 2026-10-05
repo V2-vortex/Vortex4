@@ -177,14 +177,32 @@ function updateHeader(){
 async function syncWallet(){
  if(!user||!profile)return;
  try{
-  let d=await db.listRows({databaseId:DATABASE_ID,tableId:DEPOSITS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.equal("status","approved"),Query.limit(500)]});
-  let i=await db.listRows({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.limit(500)]});
+  let d=await db.listRows({
+   databaseId:DATABASE_ID,
+   tableId:DEPOSITS_TABLE_ID,
+   queries:[Query.equal("userId",user.$id),Query.equal("status","approved"),Query.limit(500)]
+  });
+
+  if(!investmentRefreshCache){
+   investmentRefreshCache=await db.listRows({
+    databaseId:DATABASE_ID,
+    tableId:INVESTMENTS_TABLE_ID,
+    queries:[Query.equal("userId",user.$id),Query.limit(500)]
+   });
+  }
+
   let deposits=(d.rows||[]).reduce((s,x)=>s+Number(x.amount||0),0);
-  let spent=(i.rows||[]).filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())).reduce((s,x)=>s+Number(x.amount||0),0);
+  let spent=(investmentRefreshCache.rows||[])
+   .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
+   .reduce((s,x)=>s+Number(x.amount||0),0);
+
   let wallet=Math.max(0,deposits-spent);
-  if(Number(profile.wallet||0)!==wallet||Number(profile.totaldeposited||0)!==deposits)await updateUser({wallet,totaldeposited:deposits});
+
+  if(Number(profile.wallet||0)!==wallet||Number(profile.totaldeposited||0)!==deposits)
+   await updateUser({wallet,totaldeposited:deposits});
+
  }catch(e){console.log("Wallet sync:",e)}
-}
+  }
 
 function vipForActive(n){
  let v=VIP_LEVELS[0];
@@ -194,23 +212,21 @@ function vipForActive(n){
 
 async function getVipForUser(uid){
  try{
-  let refs=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",String(uid))]);
-  let inv=await listRows(INVESTMENTS_TABLE_ID,[]);
-  let purchased=new Set(
-   inv
-    .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
-    .map(x=>String(x.userId||""))
+  let refs=await listRows(
+   REFERRALS_TABLE_ID,
+   [Query.equal("referrerId",String(uid))]
   );
-  let active=refs.filter(r=>{
-   let rid=String(r.referreduserId||"");
-   return String(r.status||"").toLowerCase()==="active"||purchased.has(rid);
-  }).length;
-  return vipForActive(active)
+
+  let active=refs.filter(r=>
+   String(r.status||"").toLowerCase()==="active"
+  ).length;
+
+  return vipForActive(active);
  }catch(e){
   console.log("VIP:",e);
-  return VIP_LEVELS[0]
+  return VIP_LEVELS[0];
  }
-}
+  }
 
 async function syncVip(){
  if(!user||!profile)return VIP_LEVELS[0];
@@ -220,41 +236,79 @@ async function syncVip(){
   return v
  }catch(e){console.log("VIP sync:",e);return vipForActive(Number(profile.viplevel||1))}
 }
-
 async function processInvestments(){
  if(busyInvestment||!user||!profile)return;
  busyInvestment=true;
  try{
-  let rows=await db.listRows({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.limit(500)]});
+  if(!investmentRefreshCache){
+   investmentRefreshCache=await db.listRows({
+    databaseId:DATABASE_ID,
+    tableId:INVESTMENTS_TABLE_ID,
+    queries:[Query.equal("userId",user.$id),Query.limit(500)]
+   });
+  }
+
+  let rows=investmentRefreshCache;
+
   for(let x of rows.rows||[]){
-   let status=String(x.status||"active").toLowerCase(),cat=String(x.category||"").toLowerCase(),start=x.startat||x.createdat,dur=Math.max(1,Number(x.duration||20));
+   let status=String(x.status||"active").toLowerCase(),
+   cat=String(x.category||"").toLowerCase(),
+   start=x.startat||x.createdat,
+   dur=Math.max(1,Number(x.duration||20));
+
    if(!start||["rejected","cancelled"].includes(status)||!["daily","time"].includes(cat))continue;
+
    let credited=Number(x.creditedamount||0),add=0,finished=false,endDate=null;
+
    if(cat==="daily"){
-    let daily=Number(x.dailycredit||0),progress=Math.min(dur,calendarDayNumber(start,new Date()));
+    let daily=Number(x.dailycredit||0),
+    progress=Math.min(dur,calendarDayNumber(start,new Date()));
     add=Math.max(0,progress*daily-credited);
     finished=progress>=dur;
-    endDate=dayStart(start);endDate.setDate(endDate.getDate()+dur-1);
+    endDate=dayStart(start);
+    endDate.setDate(endDate.getDate()+dur-1);
    }else{
     let progress=Math.min(dur,workingDaysPassed(start,new Date()));
     endDate=addWorkingDaysInclusive(start,dur);
     finished=progress>=dur;
     if(finished)add=Math.max(0,Number(x.returnamount||0)-credited);
    }
+
    if(add>0){
-    let r=await updateUser({balance:Number(profile.balance||0)+add,totalearned:Number(profile.totalearned||0)+add});
-    if(r)credited+=add;
+    let r=await updateUser({
+     balance:Number(profile.balance||0)+add,
+     totalearned:Number(profile.totalearned||0)+add
+    });
+    if(r){
+     profile.balance=Number(profile.balance||0)+add;
+     profile.totalearned=Number(profile.totalearned||0)+add;
+     credited+=add;
+    }
    }
-   let ns=finished?(cat==="time"?"matured":"completed"):"active",ea=endDate?iso(endDate):"";
+
+   let ns=finished?(cat==="time"?"matured":"completed"):"active",
+   ea=endDate?iso(endDate):"";
+
    if(credited!==Number(x.creditedamount||0)||ns!==status||String(x.endat||"")!==ea){
     try{
-     await db.updateRow({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,rowId:x.$id,data:{creditedamount:credited,lastcreditat:add>0?iso(new Date()):(x.lastcreditat||""),status:ns,endat:ea}});
+     await db.updateRow({
+      databaseId:DATABASE_ID,
+      tableId:INVESTMENTS_TABLE_ID,
+      rowId:x.$id,
+      data:{
+       creditedamount:credited,
+       lastcreditat:add>0?iso(new Date()):(x.lastcreditat||""),
+       status:ns,
+       endat:ea
+      }
+     });
     }catch(e){console.log("Investment update:",e)}
    }
   }
  }catch(e){console.log("Earnings sync:",e)}
  finally{busyInvestment=false}
-}
+  }
+
 async function loadInvestmentRecords(){
  if(!user){investmentRecords=[];return}
  try{
@@ -331,18 +385,28 @@ function investmentRecordsHTML(){
   ${investmentTable(time,"time")}
  </div>`;
 }
+let accountRefreshing=false,investmentRefreshCache=null;
+
 async function refreshAccount(){
- if(!user)return;
- let p=await getProfile();
- if(!p)return;
- profile=p;
- await syncWallet();
- await syncVip();
- await processInvestments();
- let latest=await getProfile();
- if(latest)profile=latest;
- updateHeader();
-}
+ if(!user||accountRefreshing)return;
+ accountRefreshing=true;
+ investmentRefreshCache=null;
+ try{
+  let p=await getProfile();
+  if(!p)return;
+  profile=p;
+  await syncWallet();
+  await syncVip();
+  await processInvestments();
+  let latest=await getProfile();
+  if(latest)profile=latest;
+  updateHeader();
+ }catch(e){console.log("Account refresh:",e)}
+ finally{
+  investmentRefreshCache=null;
+  accountRefreshing=false;
+ }
+  }
 
 function renderProduct(p){
  let d=p.category==="daily";
@@ -790,8 +854,13 @@ function startSessionTimer(){
 }
 function startLiveSync(){
  clearInterval(liveTimer);
- liveTimer=setInterval(()=>{if(user)refreshAccount().then(()=>{if(currentScreen==="my")renderMy();setWithdrawState()}).catch(e=>console.log("Live sync:",e))},30000)
-}
+ liveTimer=setInterval(()=>{
+  if(user)refreshAccount().then(()=>{
+   if(currentScreen==="my")renderMy();
+   setWithdrawState();
+  }).catch(e=>console.log("Live sync:",e))
+ },30000)
+   }
 
 async function restoreSession(){
  let id=sessionStorage.getItem("vortexUserId");
