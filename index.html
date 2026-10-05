@@ -505,6 +505,7 @@ async function creditReferral(inv){
  }
   </script>
   <script>
+
 async function loadRecipients(){
  try{
   let r=await db.listRows({
@@ -513,21 +514,34 @@ async function loadRecipients(){
    queries:[Query.limit(500)]
   });
 
-  recipients=(r.rows||[]).map(x=>({
-   ...x,
-   _number:String(
-    x.recepient??x.recipient??x.phone??x.number??""
-   ).trim()
-  })).filter(x=>x._number);
+  recipients=(r.rows||[])
+   .map(x=>({
+    ...x,
+    _number:String(
+     x.recepient??x.recipient??x.phone??x.number??""
+    ).trim()
+   }))
+   .filter(x=>{
+    if(!x._number)return false;
+
+    let status=String(x.status??"active").trim().toLowerCase();
+    let enabled=x.enabled;
+    let active=x.active;
+
+    if(["inactive","disabled","deactivated","blocked","off"].includes(status))return false;
+    if(enabled===false)return false;
+    if(active===false)return false;
+
+    return true;
+   });
 
   console.log("Recipient rows:",r.rows);
-  console.log("Available recipients:",recipients);
+  console.log("Available active recipients:",recipients);
  }catch(e){
   console.log("Recipients load error:",e);
   recipients=[];
  }
     }
-
 async function deposit(){
  selectedRecipient="";
 
