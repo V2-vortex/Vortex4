@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Vortex — Enjoy Your Ride</title>
-<script src="https://cdn.jsdelivr.net/npm/appwrite@26.2.0"></script>
-<style>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Vortex — Enjoy Your Ride</title><script src="https://cdn.jsdelivr.net/npm/appwrite@26.2.0"></script><style>
 *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,sans-serif;background:#f5f8ef;color:#173c24}body{overflow-x:hidden}button,input{font:inherit}button{border:0;cursor:pointer}.hide{display:none!important}
 #app{width:100%;min-height:100vh}.screen{display:none;min-height:100vh;padding-bottom:82px}.screen.active{display:block}.wrap{width:100%;max-width:620px;margin:auto;padding:16px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{font-weight:900;font-size:22px;letter-spacing:2px}.tag{font-size:9px;color:#78917c;margin-top:3px}.topRight{font-size:11px;text-align:right}.topRight b{display:block}
 .card{background:#fffdf5;border:1px solid #dce7d9;border-radius:18px;padding:16px;box-shadow:0 5px 18px #36563d10;margin-bottom:12px}.balanceCard{background:#dcebd8;border:0}.small{font-size:10px;color:#78917c}.big{font-size:28px;font-weight:900;margin:5px 0}.label{font-size:10px;color:#65806c}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.action{background:#fffdf5;border:1px solid #dce7d9;border-radius:15px;padding:14px;text-align:left;color:#173c24}.action b{display:block;font-size:12px;margin-top:5px}.action:disabled{opacity:.45;cursor:not-allowed}
@@ -20,85 +13,34 @@ input{width:100%;padding:13px;border:1px solid #d5e1d2;border-radius:11px;backgr
 .productsGrid{display:grid;gap:11px}.productCard{padding:15px}.productTop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.productName{font-size:16px;font-weight:900}.productBadge{font-size:8px;background:#dcebd8;padding:6px 8px;border-radius:20px;font-weight:900}.productAmount{font-size:23px;font-weight:900;margin:13px 0}.productStats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.productStat{background:#edf5e9;border-radius:11px;padding:10px}.productStat span{display:block;font-size:8px;color:#78917c}.productStat b{display:block;font-size:11px;margin-top:4px}.productBuy{margin-top:10px}
 .guideHead{background:#dcebd8;border-radius:18px;padding:16px;margin-bottom:11px}.guideHead span{font-size:9px;letter-spacing:2px}.guideHead b{display:block;font-size:21px;margin-top:5px}.guideHead p{font-size:10px;color:#78917c;margin:5px 0 0}.helpList{display:grid;gap:9px}.helpItem{background:#fffdf5;border:1px solid #dce7d9;border-radius:15px;overflow:hidden}.helpItem summary{list-style:none;padding:15px;font-size:12px;font-weight:900;cursor:pointer;display:flex;justify-content:space-between}.helpItem summary::-webkit-details-marker{display:none}.helpItem summary:after{content:"+";font-size:18px;color:#78917c}.helpItem[open] summary:after{content:"−"}.helpBody{padding:0 15px 14px;border-top:1px solid #e5ebe2}.helpBody p,.helpBody li{font-size:10px;line-height:1.6;color:#55745d}.helpBody ol{padding-left:18px}.vipTable{width:100%;overflow:hidden}.vipTable table{width:100%;border-collapse:collapse;font-size:8px}.vipTable th,.vipTable td{padding:8px 4px;border-bottom:1px solid #e1e9de;text-align:center}.vipTable th{font-weight:900;background:#edf5e9}
 .statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.statBox{background:#edf5e9;border-radius:12px;padding:11px}.statBox b{font-size:15px;display:block;margin-top:4px}
+.tableWrap{width:100%;overflow:hidden}.recordTable{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px}.recordTable th{background:#edf2f7;text-align:left;padding:9px 6px;font-size:9px}.recordTable td{padding:10px 6px;border-bottom:1px solid #edf0f4;word-break:break-word}.recordTable th:nth-child(1),.recordTable td:nth-child(1){width:29%}.recordTable th:nth-child(2),.recordTable td:nth-child(2){width:27%}.recordTable th:nth-child(3),.recordTable td:nth-child(3){width:18%}.recordTable th:nth-child(4),.recordTable td:nth-child(4){width:26%}.recordSectionTitle{font-size:12px;font-weight:900;margin-bottom:9px}
 @media(min-width:621px){.nav{left:50%;transform:translateX(-50%);right:auto;width:620px}.chat{right:calc(50% - 285px)}}
-  .tableWrap{width:100%;overflow:hidden}
-.recordTable{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px}
-.recordTable th{background:#edf2f7;text-align:left;padding:9px 6px;font-size:9px}
-.recordTable td{padding:10px 6px;border-bottom:1px solid #edf0f4;word-break:break-word}
-.recordTable th:nth-child(1),.recordTable td:nth-child(1){width:29%}
-.recordTable th:nth-child(2),.recordTable td:nth-child(2){width:27%}
-.recordTable th:nth-child(3),.recordTable td:nth-child(3){width:18%}
-.recordTable th:nth-child(4),.recordTable td:nth-child(4){width:26%}
-.recordSectionTitle{font-size:12px;font-weight:900;margin-bottom:9px}
-</style>
-</head>
-<body>
+</style></head><body>
 
-<div id="authScreen" class="screen active">
-<div class="auth"><div class="authBox">
+<div id="authScreen" class="screen active"><div class="auth"><div class="authBox">
 <div class="logo">VORTEX</div><div class="authTag">ENJOY YOUR RIDE</div>
-<div id="loginBox" class="card">
-<div class="title">Welcome back</div><div class="sub">Sign in</div>
-<input id="loginEmail" type="email" placeholder="Email">
-<input id="loginPass" type="password" placeholder="Password">
-<div id="loginMsg"></div>
-<button id="loginBtn" class="primary" data-action="login">Sign In</button>
-<div class="switch">Don't have an account? <button data-action="show-register">Create account</button></div>
-</div>
-<div id="registerBox" class="card hide">
-<div class="title">Create account</div><div class="sub">Join Vortex</div>
-<input id="regUsername" placeholder="Username">
-<input id="regEmail" type="email" placeholder="Email">
-<input id="regPhone" type="tel" placeholder="07XXXXXXXX">
-<input id="regPass" type="password" placeholder="Password">
-<input id="regConfirm" type="password" placeholder="Confirm Password">
-<div id="regMsg"></div>
-<button id="regBtn" class="primary" data-action="register">Create Account</button>
-<div class="switch">Already have an account? <button data-action="show-login">Sign in</button></div>
-</div>
-</div></div>
-</div>
+<div id="loginBox" class="card"><div class="title">Welcome back</div><div class="sub">Sign in</div><input id="loginEmail" type="email" placeholder="Email"><input id="loginPass" type="password" placeholder="Password"><div id="loginMsg"></div><button id="loginBtn" class="primary" data-action="login">Sign In</button><div class="switch">Don't have an account? <button data-action="show-register">Create account</button></div></div>
+<div id="registerBox" class="card hide"><div class="title">Create account</div><div class="sub">Join Vortex</div><input id="regUsername" placeholder="Username"><input id="regEmail" type="email" placeholder="Email"><input id="regPhone" type="tel" placeholder="07XXXXXXXX"><input id="regPass" type="password" placeholder="Password"><input id="regConfirm" type="password" placeholder="Confirm Password"><div id="regMsg"></div><button id="regBtn" class="primary" data-action="register">Create Account</button><div class="switch">Already have an account? <button data-action="show-login">Sign in</button></div></div>
+</div></div></div>
 
-<div id="homeScreen" class="screen">
-<div class="wrap">
+<div id="homeScreen" class="screen"><div class="wrap">
 <div class="top"><div><div class="brand">VORTEX</div><div class="tag">ENJOY YOUR RIDE</div></div><div class="topRight">Welcome - <b id="headName"></b></div></div>
 <div class="card balanceCard"><div class="label">Wallet</div><div class="big">UGX <span id="wallet">0</span></div></div>
 <div class="card"><div class="label">Balance</div><div class="big">UGX <span id="balance">0</span></div></div>
-<div class="actions">
-<button class="action" data-action="deposit">＋<b>Deposit</b></button>
-<button class="action" data-action="withdraw" disabled>↗<b>Withdraw</b></button>
-</div>
-<div class="sectionTitle">Vortex Products</div>
-<div class="cats">
-<button class="cat" data-action="daily">◷<b>Daily</b><small>20 days</small></button>
-<button class="cat" data-action="time">⌛<b>Time</b><small>20 days</small></button>
-<button class="cat" data-action="vault">▣<b>Vault</b><small>Coming soon</small></button>
-</div>
-<div class="sectionTitle">Help</div>
-<button class="guideBtn" data-action="help">▤ <span><b>Help & Guide</b><small>Quick guide</small></span>›</button>
-</div>
-<button id="chatBtn" class="chat" data-action="chat">☵</button>
-</div>
-
-<div id="inviteScreen" class="screen"><div class="wrap" id="inviteContent"></div></div>
-<div id="myScreen" class="screen"><div class="wrap" id="myContent"></div></div>
-<div id="categoryScreen" class="screen"><div class="wrap" id="categoryContent"></div></div>
-<div id="helpScreen" class="screen"><div class="wrap" id="helpContent"></div></div>
-<div id="adminScreen" class="screen"><div class="wrap" id="adminContent"></div></div>
-<div id="bottomNav" class="nav hide">
-<button data-action="home">⌂<b>Home</b></button>
-<button data-action="invite">♧<b>Invite</b></button>
-<button data-action="my">◎<b>My</b></button>
-</div>
-<div id="modalBg" class="modalBg"><div id="modal" class="modal"></div></div>
-<div id="toast" class="toast"></div>
+<div class="actions"><button class="action" data-action="deposit">＋<b>Deposit</b></button><button class="action" data-action="withdraw" disabled>↗<b>Withdraw</b></button></div>
+<div class="sectionTitle">Vortex Products</div><div class="cats"><button class="cat" data-action="daily">◷<b>Daily</b><small>20 days</small></button><button class="cat" data-action="time">⌛<b>Time</b><small>20 days</small></button><button class="cat" data-action="vault">▣<b>Vault</b><small>Coming soon</small></button></div>
+<div class="sectionTitle">Help</div><button class="guideBtn" data-action="help">▤ <span><b>Help & Guide</b><small>Quick guide</small></span>›</button>
+</div><button id="chatBtn" class="chat" data-action="chat">☵</button></div>
+<div id="inviteScreen" class="screen"><div class="wrap" id="inviteContent"></div></div><div id="myScreen" class="screen"><div class="wrap" id="myContent"></div></div><div id="categoryScreen" class="screen"><div class="wrap" id="categoryContent"></div></div><div id="helpScreen" class="screen"><div class="wrap" id="helpContent"></div></div><div id="adminScreen" class="screen"><div class="wrap" id="adminContent"></div></div>
+<div id="bottomNav" class="nav hide"><button data-action="home">⌂<b>Home</b></button><button data-action="invite">♧<b>Invite</b></button><button data-action="my">◎<b>My</b></button></div>
+<div id="modalBg" class="modalBg"><div id="modal" class="modal"></div></div><div id="toast" class="toast"></div>
 
 <script>
 const{Client,Account,TablesDB,ID,Query}=Appwrite;
 const ENDPOINT="https://cloud.appwrite.io/v1",PROJECT_ID="6a903d26002edcba7c43",DATABASE_ID="6ab93e1f001b1a60b658";
 const USERS_TABLE_ID="6ab972e60038e2121462",DEPOSITS_TABLE_ID="6abc15840015fbc8ad75",WITHDRAWALS_TABLE_ID="6abc1c3d0006a5526d37",PRODUCTS_TABLE_ID="6abc2545003164242377",INVESTMENTS_TABLE_ID="6abc26e2000f85014be0",REFERRALS_TABLE_ID="6abcfb0b0027beb5cb1a",RECIPIENTS_TABLE_ID="6ac0a39600062c828059";
 const client=new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID),account=new Account(client),db=new TablesDB(client);
-let user=null,profile=null,currentScreen="home",selectedRecipient="",recipients=[],purchaseBusy=false,busyInvestment=false,liveTimer=null,sessionTimer=null,investmentRecords=[];
+let user=null,profile=null,currentScreen="home",selectedRecipient="",recipients=[],purchaseBusy=false,busyInvestment=false,liveTimer=null,sessionTimer=null,investmentRecords=[],accountRefreshing=false,investmentRefreshCache=null,withdrawRefreshPromise=null;
 const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString("en-UG"),iso=d=>new Date(d).toISOString();
 function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function msg(id,t,c="info"){let e=$(id);if(e)e.innerHTML=`<div class="msg ${c}">${esc(t)}</div>`}
@@ -112,29 +54,13 @@ function ready(id,t){let b=$(id);if(b){b.textContent=t;b.disabled=false}}
 function validPhone(p){return/^07\d{8}$/.test(String(p||"").trim())}
 function validEmail(e){return/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||"").trim())}
 function copyText(t){if(!t)return;if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast("Copied")).catch(()=>toast("Copy unavailable"));else{let a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();toast("Copied")}}
-function openLink(url){
- url=String(url||"").trim();
- if(!url)return;
- try{
-  let a=document.createElement("a");
-  a.href=url;
-  a.target="_blank";
-  a.rel="noopener noreferrer";
-  a.style.display="none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
- }catch(e){
-  console.log("Open link:",e);
-  window.location.href=url;
- }
-}
+function openLink(url){url=String(url||"").trim();if(!url)return;try{let a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.style.display="none";document.body.appendChild(a);a.click();a.remove()}catch(e){window.location.href=url}}
 function dayStart(d){let x=new Date(d);x.setHours(0,0,0,0);return x}
 function calendarDayNumber(start,now){return Math.floor((dayStart(now)-dayStart(start))/86400000)+1}
 function workingDaysPassed(start,now){let d=dayStart(start),n=dayStart(now),c=0;while(d<=n){let w=d.getDay();if(w!==0&&w!==6)c++;d.setDate(d.getDate()+1)}return c}
 function addWorkingDaysInclusive(start,num){let d=dayStart(start),c=0;while(c<num){let w=d.getDay();if(w!==0&&w!==6)c++;if(c<num)d.setDate(d.getDate()+1)}return d}
-</script>
-<script>
+  </script>
+  <script>
 const DAILY=[["Start",10000,1000],["Rise",25000,2500],["Drive",50000,5000],["Boost",100000,10000],["Power",250000,25000],["Pro",500000,50000],["Prime",1000000,100000],["Elite",2000000,200000],["Max",3000000,300000],["Ultra",5000000,500000]];
 const TIME=[["Sprint",10000,22000],["Momentum",25000,55000],["Surge",50000,110000],["Advance",100000,220000],["Titan",250000,550000],["Apex",500000,1100000],["Infinity",1000000,2200000],["Summit",2000000,4400000],["Horizon",3000000,6600000],["Zenith",5000000,11000000]];
 const VIP_LEVELS=[{level:1,active:0,minutes:20,tax:20,ref:10},{level:2,active:2,minutes:15,tax:15,ref:15},{level:3,active:5,minutes:12,tax:12,ref:18},{level:4,active:10,minutes:10,tax:10,ref:20},{level:5,active:25,minutes:8,tax:8,ref:25},{level:6,active:35,minutes:5,tax:5,ref:40}];
@@ -145,302 +71,107 @@ function products(){
  return[...a,...b]
 }
 function findProduct(id){return products().find(x=>x.id===id)}
-
-async function listRows(table,queries=[]){
- try{
-  let r=await db.listRows({databaseId:DATABASE_ID,tableId:table,queries:[...queries,Query.limit(500)]});
-  return r.rows||[]
- }catch(e){console.log("List:",table,e);throw e}
-}
-
-async function getProfile(){
- if(!user)return null;
- try{return await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id})}
- catch(e){console.log("Profile:",e);return null}
-}
-
-async function updateUser(data){
- if(!user)throw Error("NO_USER");
- let r=await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id,data});
- profile={...(profile||{}),...r};
- updateHeader();
- return r
-}
-
-function updateHeader(){
- let p=profile||{};
- if($("headName"))$("headName").textContent=(p.username||"")+" 👋👋";
- if($("wallet"))$("wallet").textContent=fmt(p.wallet);
- if($("balance"))$("balance").textContent=fmt(p.balance);
-  }
+async function listRows(table,queries=[]){try{let r=await db.listRows({databaseId:DATABASE_ID,tableId:table,queries:[...queries,Query.limit(500)]});return r.rows||[]}catch(e){console.log("List:",table,e);throw e}}
+async function getProfile(){if(!user)return null;try{return await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id})}catch(e){console.log("Profile:",e);return null}}
+async function updateUser(data){if(!user)throw Error("NO_USER");let r=await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id,data});profile={...(profile||{}),...r};updateHeader();return r}
+function updateHeader(){let p=profile||{};if($("headName"))$("headName").textContent=(p.username||"")+" 👋👋";if($("wallet"))$("wallet").textContent=fmt(p.wallet);if($("balance"))$("balance").textContent=fmt(p.balance)}
 
 async function syncWallet(){
  if(!user||!profile)return;
  try{
-  let d=await db.listRows({
-   databaseId:DATABASE_ID,
-   tableId:DEPOSITS_TABLE_ID,
-   queries:[Query.equal("userId",user.$id),Query.equal("status","approved"),Query.limit(500)]
-  });
-
-  if(!investmentRefreshCache){
-   investmentRefreshCache=await db.listRows({
-    databaseId:DATABASE_ID,
-    tableId:INVESTMENTS_TABLE_ID,
-    queries:[Query.equal("userId",user.$id),Query.limit(500)]
-   });
-  }
-
+  let d=await db.listRows({databaseId:DATABASE_ID,tableId:DEPOSITS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.equal("status","approved"),Query.limit(500)]});
+  if(!investmentRefreshCache)investmentRefreshCache=await db.listRows({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.limit(500)]});
   let deposits=(d.rows||[]).reduce((s,x)=>s+Number(x.amount||0),0);
-  let spent=(investmentRefreshCache.rows||[])
-   .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
-   .reduce((s,x)=>s+Number(x.amount||0),0);
-
+  let spent=(investmentRefreshCache.rows||[]).filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())).reduce((s,x)=>s+Number(x.amount||0),0);
   let wallet=Math.max(0,deposits-spent);
-
-  if(Number(profile.wallet||0)!==wallet||Number(profile.totaldeposited||0)!==deposits)
-   await updateUser({wallet,totaldeposited:deposits});
-
+  if(Number(profile.wallet||0)!==wallet||Number(profile.totaldeposited||0)!==deposits)await updateUser({wallet,totaldeposited:deposits});
  }catch(e){console.log("Wallet sync:",e)}
-  }
-
-function vipForActive(n){
- let v=VIP_LEVELS[0];
- VIP_LEVELS.forEach(x=>{if(n>=x.active)v=x});
- return v
 }
+
+function vipForActive(n){let v=VIP_LEVELS[0];VIP_LEVELS.forEach(x=>{if(n>=x.active)v=x});return v}
 
 async function getVipForUser(uid){
  try{
-  let refs=await listRows(
-   REFERRALS_TABLE_ID,
-   [Query.equal("referrerId",String(uid))]
-  );
-
-  let inv=await listRows(
-   INVESTMENTS_TABLE_ID,
-   []
-  );
-
-  let purchased=new Set(
-   inv
-    .filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
-    .map(x=>String(x.userId||""))
-  );
-
-  let active=refs.filter(r=>{
-   let rid=String(r.referreduserId||"");
-   return String(r.status||"").toLowerCase()==="active"||purchased.has(rid);
-  }).length;
-
-  return vipForActive(active);
- }catch(e){
-  console.log("VIP:",e);
-  return VIP_LEVELS[0];
- }
-                                   }
+  let refs=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",String(uid))]);
+  let ids=refs.map(r=>String(r.referreduserId||"")).filter(Boolean),inv=[];
+  if(ids.length)inv=await listRows(INVESTMENTS_TABLE_ID,[Query.equal("userId",ids)]);
+  let purchased=new Set(inv.filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())).map(x=>String(x.userId||"")));
+  let active=refs.filter(r=>{let rid=String(r.referreduserId||"");return String(r.status||"").toLowerCase()==="active"||purchased.has(rid)}).length;
+  return vipForActive(active)
+ }catch(e){console.log("VIP:",e);return VIP_LEVELS[0]}
+}
 
 async function syncVip(){
  if(!user||!profile)return VIP_LEVELS[0];
- try{
-  let v=await getVipForUser(user.$id);
-  if(Number(profile.viplevel||1)!==v.level)await updateUser({viplevel:v.level});
-  return v
- }catch(e){console.log("VIP sync:",e);return vipForActive(Number(profile.viplevel||1))}
+ try{let v=await getVipForUser(user.$id);if(Number(profile.viplevel||1)!==v.level)await updateUser({viplevel:v.level});return v}
+ catch(e){console.log("VIP sync:",e);return vipForActive(Number(profile.viplevel||1))}
 }
+
 async function processInvestments(){
  if(busyInvestment||!user||!profile)return;
  busyInvestment=true;
  try{
-  if(!investmentRefreshCache){
-   investmentRefreshCache=await db.listRows({
-    databaseId:DATABASE_ID,
-    tableId:INVESTMENTS_TABLE_ID,
-    queries:[Query.equal("userId",user.$id),Query.limit(500)]
-   });
-  }
-
+  if(!investmentRefreshCache)investmentRefreshCache=await db.listRows({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.limit(500)]});
   let rows=investmentRefreshCache;
-
   for(let x of rows.rows||[]){
-   let status=String(x.status||"active").toLowerCase(),
-   cat=String(x.category||"").toLowerCase(),
-   start=x.startat||x.createdat,
-   dur=Math.max(1,Number(x.duration||20));
-
+   let status=String(x.status||"active").toLowerCase(),cat=String(x.category||"").toLowerCase(),start=x.startat||x.createdat,dur=Math.max(1,Number(x.duration||20));
    if(!start||["rejected","cancelled","completed","matured","expired"].includes(status)||!["daily","time"].includes(cat))continue;
-
    let credited=Number(x.creditedamount||0),add=0,finished=false,endDate=null;
-
    if(cat==="daily"){
-    /*
-     DAILY RULE:
-     Every completed earning day = exactly 10% of the
-     original purchase amount.
-    */
-    let daily=Math.floor(Number(x.amount||0)*0.10);
-    let progress=Math.min(dur,calendarDayNumber(start,new Date()));
-
-    let expected=Math.min(progress,dur)*daily;
-    add=Math.max(0,expected-credited);
-
-    finished=progress>=dur;
-
-    endDate=dayStart(start);
-    endDate.setDate(endDate.getDate()+dur-1);
+    let daily=Math.floor(Number(x.amount||0)*.10),progress=Math.min(dur,calendarDayNumber(start,new Date())),expected=Math.min(progress,dur)*daily;
+    add=Math.max(0,expected-credited);finished=progress>=dur;endDate=dayStart(start);endDate.setDate(endDate.getDate()+dur-1);
    }else{
     let progress=Math.min(dur,workingDaysPassed(start,new Date()));
-
-    endDate=addWorkingDaysInclusive(start,dur);
-    finished=progress>=dur;
-
-    if(finished){
-     add=Math.max(0,Number(x.returnamount||0)-credited);
-    }
+    endDate=addWorkingDaysInclusive(start,dur);finished=progress>=dur;
+    if(finished)add=Math.max(0,Number(x.returnamount||0)-credited)
    }
-
    if(add>0){
-    let r=await updateUser({
-     balance:Number(profile.balance||0)+add,
-     totalearned:Number(profile.totalearned||0)+add
-    });
-
-    if(r){
-     profile.balance=Number(profile.balance||0)+add;
-     profile.totalearned=Number(profile.totalearned||0)+add;
-     credited+=add;
-    }
+    let r=await updateUser({balance:Number(profile.balance||0)+add,totalearned:Number(profile.totalearned||0)+add});
+    if(r){profile.balance=Number(profile.balance||0)+add;profile.totalearned=Number(profile.totalearned||0)+add;credited+=add}
    }
-
-   let ns=finished?(cat==="time"?"matured":"completed"):"active",
-   ea=endDate?iso(endDate):"";
-
-   if(
-    credited!==Number(x.creditedamount||0)||
-    ns!==status||
-    String(x.endat||"")!==ea
-   ){
-    try{
-     await db.updateRow({
-      databaseId:DATABASE_ID,
-      tableId:INVESTMENTS_TABLE_ID,
-      rowId:x.$id,
-      data:{
-       creditedamount:credited,
-       lastcreditat:add>0?iso(new Date()):(x.lastcreditat||""),
-       status:ns,
-       endat:ea
-      }
-     });
-    }catch(e){
-     console.log("Investment update:",e);
-    }
+   let ns=finished?(cat==="time"?"matured":"completed"):"active",ea=endDate?iso(endDate):"";
+   if(credited!==Number(x.creditedamount||0)||ns!==status||String(x.endat||"")!==ea){
+    try{await db.updateRow({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,rowId:x.$id,data:{creditedamount:credited,lastcreditat:add>0?iso(new Date()):(x.lastcreditat||""),status:ns,endat:ea}})}catch(e){console.log("Investment update:",e)}
    }
   }
- }catch(e){
-  console.log("Earnings sync:",e);
- }finally{
-  busyInvestment=false;
- }
-  }
+ }catch(e){console.log("Earnings sync:",e)}finally{busyInvestment=false}
+}
+
 async function loadInvestmentRecords(){
  if(!user){investmentRecords=[];return}
  try{
-  let r=await db.listRows({
-   databaseId:DATABASE_ID,
-   tableId:INVESTMENTS_TABLE_ID,
-   queries:[Query.equal("userId",user.$id),Query.limit(500)]
-  });
-  investmentRecords=(r.rows||[]).filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()));
- }catch(e){
-  console.log("Investment records:",e);
-  investmentRecords=[];
- }
+  let r=await db.listRows({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,queries:[Query.equal("userId",user.$id),Query.limit(500)]});
+  investmentRecords=(r.rows||[]).filter(x=>!["rejected","cancelled"].includes(String(x.status||"").toLowerCase()))
+ }catch(e){console.log("Investment records:",e);investmentRecords=[]}
 }
 
 function investmentProgress(x){
- let cat=String(x.category||"").toLowerCase();
- let start=x.startat||x.createdat;
- let total=Math.max(1,Number(x.duration||20));
+ let cat=String(x.category||"").toLowerCase(),start=x.startat||x.createdat,total=Math.max(1,Number(x.duration||20));
  if(!start)return{done:0,total,pct:0,status:"active"};
-
- let done=cat==="daily"
-  ?Math.min(total,calendarDayNumber(start,new Date()))
-  :Math.min(total,workingDaysPassed(start,new Date()));
-
+ let done=cat==="daily"?Math.min(total,calendarDayNumber(start,new Date())):Math.min(total,workingDaysPassed(start,new Date()));
  let pct=Math.min(100,Math.floor(done/total*100));
- return{done,total,pct,status:done>=total?"out":"active"};
+ return{done,total,pct,status:done>=total?"out":"active"}
 }
 
 function investmentTable(arr,type){
  if(!arr.length)return`<div class="empty">No ${type} products purchased.</div>`;
-
- return`
- <div class="tableWrap">
-  <table class="recordTable">
-   <thead>
-    <tr>
-     <th>Name</th>
-     <th>Progress</th>
-     <th>Percentage</th>
-     <th>Status</th>
-    </tr>
-   </thead>
-   <tbody>
-    ${arr.map(x=>{
-     let p=investmentProgress(x);
-     return`
-      <tr>
-       <td><b>${esc(x.productname||"Product")}</b></td>
-       <td>${p.done}/${p.total} days</td>
-       <td>${p.pct}%</td>
-       <td>${p.status==="out"?"❌ Out":"🟢 Active"}</td>
-      </tr>`;
-    }).join("")}
-   </tbody>
-  </table>
- </div>`;
+ return`<div class="tableWrap"><table class="recordTable"><thead><tr><th>Name</th><th>Progress</th><th>Percentage</th><th>Status</th></tr></thead><tbody>${arr.map(x=>{let p=investmentProgress(x);return`<tr><td><b>${esc(x.productname||"Product")}</b></td><td>${p.done}/${p.total} days</td><td>${p.pct}%</td><td>${p.status==="out"?"❌ Out":"🟢 Active"}</td></tr>`}).join("")}</tbody></table></div>`
 }
-
 function investmentRecordsHTML(){
- let daily=investmentRecords.filter(x=>String(x.category||"").toLowerCase()==="daily");
- let time=investmentRecords.filter(x=>String(x.category||"").toLowerCase()==="time");
-
- return`
- <div class="sectionTitle">Purchased Products</div>
-
- <div class="card">
-  <div class="recordSectionTitle">DAILY</div>
-  ${investmentTable(daily,"daily")}
- </div>
-
- <div class="card">
-  <div class="recordSectionTitle">TIME</div>
-  ${investmentTable(time,"time")}
- </div>`;
+ let daily=investmentRecords.filter(x=>String(x.category||"").toLowerCase()==="daily"),time=investmentRecords.filter(x=>String(x.category||"").toLowerCase()==="time");
+ return`<div class="sectionTitle">Purchased Products</div><div class="card"><div class="recordSectionTitle">DAILY</div>${investmentTable(daily,"daily")}</div><div class="card"><div class="recordSectionTitle">TIME</div>${investmentTable(time,"time")}</div>`
 }
-let accountRefreshing=false,investmentRefreshCache=null;
 
 async function refreshAccount(){
  if(!user||accountRefreshing)return;
- accountRefreshing=true;
- investmentRefreshCache=null;
+ accountRefreshing=true;investmentRefreshCache=null;
  try{
-  let p=await getProfile();
-  if(!p)return;
-  profile=p;
-  await syncWallet();
-  await syncVip();
-  await processInvestments();
-  let latest=await getProfile();
-  if(latest)profile=latest;
-  updateHeader();
+  let p=await getProfile();if(!p)return;profile=p;
+  await syncWallet();await syncVip();await processInvestments();
+  let latest=await getProfile();if(latest)profile=latest;updateHeader()
  }catch(e){console.log("Account refresh:",e)}
- finally{
-  investmentRefreshCache=null;
-  accountRefreshing=false;
- }
-  }
+ finally{investmentRefreshCache=null;accountRefreshing=false}
+}
 
 function renderProduct(p){
  let d=p.category==="daily";
@@ -448,8 +179,7 @@ function renderProduct(p){
 }
 
 function category(type){
- currentScreen="category";screen("categoryScreen");nav("home");
- let arr=products().filter(x=>x.category===type);
+ currentScreen="category";screen("categoryScreen");nav("home");let arr=products().filter(x=>x.category===type);
  $("categoryContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">${type==="daily"?"Daily":"Time"}</div><div class="productsGrid">${arr.map(renderProduct).join("")}</div>`
 }
 
@@ -463,148 +193,49 @@ async function purchase(id){
  let p=findProduct(id);if(!p)return;
  purchaseBusy=true;busy("buyBtn","Processing...");msg("buyMsg","Please wait.","info");
  try{
-  await refreshAccount();
-  if(!profile)throw Error("ACCOUNT");
+  await refreshAccount();if(!profile)throw Error("ACCOUNT");
   if(Number(profile.wallet||0)<p.amount)throw Error("INSUFFICIENT");
   let now=new Date(),inv={userId:user.$id,username:profile.username||"",productId:p.id,productname:p.name,category:p.category,amount:p.amount,dailycredit:p.category==="daily"?p.daily:0,returnamount:p.returnamount,duration:20,startat:iso(now),createdat:iso(now),endat:"",lastcreditat:"",creditedamount:0,status:"active",purchaseId:ID.unique()};
   let row=await db.createRow({databaseId:DATABASE_ID,tableId:INVESTMENTS_TABLE_ID,rowId:ID.unique(),data:inv});
-  await creditReferral(row);
-  await refreshAccount();
-  close();home();toast("Purchase successful");
- }catch(e){
-  console.log("Purchase:",e);
-  msg("buyMsg",e.message==="INSUFFICIENT"?"Insufficient Wallet balance.":"Purchase could not be completed. Please try again.","err");
- }finally{purchaseBusy=false;ready("buyBtn","Confirm Purchase")}
-  }
-
+  await creditReferral(row);await refreshAccount();close();home();toast("Purchase successful")
+ }catch(e){console.log("Purchase:",e);msg("buyMsg",e.message==="INSUFFICIENT"?"Insufficient Wallet balance.":"Purchase could not be completed. Please try again.","err")}
+ finally{purchaseBusy=false;ready("buyBtn","Confirm Purchase")}
+}
+    <script>
 async function creditReferral(inv){
  try{
   if(!user||!inv)return;
-
-  let q=await listRows(
-   REFERRALS_TABLE_ID,
-   [Query.equal("referreduserId",String(user.$id))]
-  );
-
-  let rr=q.find(x=>
-   String(x.status||"").toLowerCase()==="registered" &&
-   String(x.firstpurchase).toLowerCase()!=="true"
-  );
-
+  let q=await listRows(REFERRALS_TABLE_ID,[Query.equal("referreduserId",String(user.$id))]);
+  let rr=q.find(x=>String(x.status||"").toLowerCase()==="registered"&&String(x.firstpurchase).toLowerCase()!=="true");
   if(!rr)return;
-
-  let purchaseAmount=Number(inv.amount||0);
-  if(purchaseAmount<=0)return;
-
-  let currentVip=await getVipForUser(rr.referrerId);
-  let rate=Number(currentVip.ref||0);
-  let commission=Math.floor(purchaseAmount*rate/100);
-
-  let referrer=await db.getRow({
-   databaseId:DATABASE_ID,
-   tableId:USERS_TABLE_ID,
-   rowId:String(rr.referrerId)
-  });
-
-  if(commission>0){
-   await db.updateRow({
-    databaseId:DATABASE_ID,
-    tableId:USERS_TABLE_ID,
-    rowId:String(rr.referrerId),
-    data:{
-     balance:Number(referrer.balance||0)+commission,
-     totalreferral:Number(referrer.totalreferral||0)+commission
-    }
-   });
-  }
-
-  await db.updateRow({
-   databaseId:DATABASE_ID,
-   tableId:REFERRALS_TABLE_ID,
-   rowId:String(rr.$id),
-   data:{
-    status:"active",
-    firstpurchase:true,
-    firstpurchaseamount:purchaseAmount,
-    bonusPercent:rate,
-    bonusamount:commission,
-    bonuspaid:commission>0,
-    activatedat:iso(new Date())
-   }
-  });
-
- }catch(e){
-  console.log("Referral commission error:",e);
- }
- }
-  </script>
-  <script>
+  let purchaseAmount=Number(inv.amount||0);if(purchaseAmount<=0)return;
+  let currentVip=await getVipForUser(rr.referrerId),rate=Number(currentVip.ref||0),commission=Math.floor(purchaseAmount*rate/100);
+  let referrer=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:String(rr.referrerId)});
+  if(commission>0)await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:String(rr.referrerId),data:{balance:Number(referrer.balance||0)+commission,totalreferral:Number(referrer.totalreferral||0)+commission}});
+  await db.updateRow({databaseId:DATABASE_ID,tableId:REFERRALS_TABLE_ID,rowId:String(rr.$id),data:{status:"active",firstpurchase:true,firstpurchaseamount:purchaseAmount,bonusPercent:rate,bonusamount:commission,bonuspaid:commission>0,activatedat:iso(new Date())}})
+ }catch(e){console.log("Referral commission error:",e)}
+}
 
 async function loadRecipients(){
  try{
-  let r=await db.listRows({
-   databaseId:DATABASE_ID,
-   tableId:RECIPIENTS_TABLE_ID,
-   queries:[Query.limit(500)]
-  });
+  let r=await db.listRows({databaseId:DATABASE_ID,tableId:RECIPIENTS_TABLE_ID,queries:[Query.limit(500)]});
+  recipients=(r.rows||[]).map(x=>({...x,_number:String(x.recepient??x.recipient??x.phone??x.number??"").trim()})).filter(x=>{
+   if(!x._number)return false;
+   let status=String(x.status??"active").trim().toLowerCase();
+   return!["inactive","disabled","deactivated","blocked","off"].includes(status)&&x.enabled!==false&&x.active!==false
+  })
+ }catch(e){console.log("Recipients load error:",e);recipients=[]}
+}
 
-  recipients=(r.rows||[])
-   .map(x=>({
-    ...x,
-    _number:String(
-     x.recepient??x.recipient??x.phone??x.number??""
-    ).trim()
-   }))
-   .filter(x=>{
-    if(!x._number)return false;
-
-    let status=String(x.status??"active").trim().toLowerCase();
-    let enabled=x.enabled;
-    let active=x.active;
-
-    if(["inactive","disabled","deactivated","blocked","off"].includes(status))return false;
-    if(enabled===false)return false;
-    if(active===false)return false;
-
-    return true;
-   });
-
-  console.log("Recipient rows:",r.rows);
-  console.log("Available active recipients:",recipients);
- }catch(e){
-  console.log("Recipients load error:",e);
-  recipients=[];
- }
-    }
 async function deposit(){
  selectedRecipient="";
-
  open(`<div class="mh"><h3>Deposit</h3><button class="close" data-action="close">×</button></div><div class="empty">Loading...</div>`);
-
  await loadRecipients();
+ if(!recipients.length){$("modal").innerHTML=`<div class="mh"><h3>Deposit</h3><button class="close" data-action="close">×</button></div><div class="msg err">No deposit number is available. Please contact admin.</div>`;return}
+ let r=recipients[Math.floor(Math.random()*recipients.length)];selectedRecipient=String(r._number||"").trim();
+ $("modal").innerHTML=`<div class="mh"><h3>Deposit</h3><button class="close" data-action="close">×</button></div><div class="card"><div class="small">Send money to</div><div class="big">${esc(selectedRecipient)}</div>${r.name?`<div class="small">${esc(r.name)}</div>`:""}<button class="modalBtn" style="margin-top:10px" data-action="copy-recipient">Copy number</button></div><input id="depAmount" type="number" placeholder="Amount"><input id="depPhone" type="tel" placeholder="07XXXXXXXX"><input id="depTxn" placeholder="Transaction ID"><div id="depMsg"></div><button id="depBtn" class="primary" data-action="submit-deposit">Submit</button>`
+}
 
- if(!recipients.length){
-  $("modal").innerHTML=`<div class="mh"><h3>Deposit</h3><button class="close" data-action="close">×</button></div><div class="msg err">No deposit number is available. Please contact admin.</div>`;
-  return;
- }
-
- let r=recipients[Math.floor(Math.random()*recipients.length)];
- selectedRecipient=String(r._number||"").trim();
-
- $("modal").innerHTML=`
- <div class="mh"><h3>Deposit</h3><button class="close" data-action="close">×</button></div>
- <div class="card">
-  <div class="small">Send money to</div>
-  <div class="big">${esc(selectedRecipient)}</div>
-  ${r.name?`<div class="small">${esc(r.name)}</div>`:""}
-  <button class="modalBtn" style="margin-top:10px" data-action="copy-recipient">Copy number</button>
- </div>
- <input id="depAmount" type="number" placeholder="Amount">
- <input id="depPhone" type="tel" placeholder="07XXXXXXXX">
- <input id="depTxn" placeholder="Transaction ID">
- <div id="depMsg"></div>
- <button id="depBtn" class="primary" data-action="submit-deposit">Submit</button>`;
-    }
 async function submitDeposit(){
  let amount=Number($("depAmount")?.value||0),phone=String($("depPhone")?.value||"").trim(),txn=String($("depTxn")?.value||"").trim();
  if(amount<1000)return msg("depMsg","Enter a valid amount.","err");
@@ -614,43 +245,38 @@ async function submitDeposit(){
  busy("depBtn","Submitting...");
  try{
   if(!user||!profile)throw Error("ACCOUNT");
-  await db.createRow({
-   databaseId:DATABASE_ID,
-   tableId:DEPOSITS_TABLE_ID,
-   rowId:ID.unique(),
-   data:{
-    userId:user.$id,
-    username:profile.username||"",
-    amount:amount,
-    phone:phone,
-    transactionId:txn,
-    recepient:selectedRecipient,
-    status:"pending",
-    createdat:iso(new Date())
-   }
-  });
-  close();
-  toast("Deposit submitted");
- }catch(e){
-  console.log("Deposit:",e);
-  msg("depMsg","Deposit could not be submitted. Please try again.","err");
- }finally{
-  ready("depBtn","Submit");
- }
+  await db.createRow({databaseId:DATABASE_ID,tableId:DEPOSITS_TABLE_ID,rowId:ID.unique(),data:{userId:user.$id,username:profile.username||"",amount,phone,transactionId:txn,recepient:selectedRecipient,status:"pending",createdat:iso(new Date())}});
+  close();toast("Deposit submitted")
+ }catch(e){console.log("Deposit:",e);msg("depMsg","Deposit could not be submitted. Please try again.","err")}
+ finally{ready("depBtn","Submit")}
 }
 
 function withdrawWindow(){let h=new Date().getHours();return h>=8&&h<14}
 function setWithdrawState(){
  let b=document.querySelector('[data-action="withdraw"]');if(!b)return;
- let active=withdrawWindow();b.disabled=!active;b.style.opacity=active?"1":".45";b.style.cursor=active?"pointer":"not-allowed";
+ let active=withdrawWindow();b.disabled=!active;b.style.opacity=active?"1":".45";b.style.cursor=active?"pointer":"not-allowed"
 }
 
+/* FAST WITHDRAW:
+   The modal opens immediately.
+   Account refresh happens in the background.
+*/
 async function withdraw(){
  if(!withdrawWindow())return;
  try{
-  await refreshAccount();if(!profile){toast("Please try again.");return}
-  let vip=await syncVip();
-  open(`<div class="mh"><h3>Withdraw</h3><button class="close" data-action="close">×</button></div><div class="card"><div class="small">Balance</div><div class="big">UGX ${fmt(profile.balance)}</div><div class="small">VIP ${vip.level}</div></div><input id="wdAmount" type="number" placeholder="Amount"><input id="wdPhone" type="tel" placeholder="07XXXXXXXX"><div id="wdMsg"></div><button id="wdBtn" class="primary" data-action="submit-withdraw">Submit</button>`);
+  if(!user||!profile){toast("Please try again.");return}
+  let vip=VIP_LEVELS[Math.max(0,Math.min(5,Number(profile.viplevel||1)-1))];
+  open(`<div class="mh"><h3>Withdraw</h3><button class="close" data-action="close">×</button></div><div class="card"><div class="small">Balance</div><div id="wdBalance" class="big">UGX ${fmt(profile.balance)}</div><div id="wdVip" class="small">VIP ${vip.level}</div></div><input id="wdAmount" type="number" placeholder="Amount"><input id="wdPhone" type="tel" placeholder="07XXXXXXXX"><div id="wdMsg"></div><button id="wdBtn" class="primary" data-action="submit-withdraw">Submit</button>`);
+  withdrawRefreshPromise=getProfile().then(async p=>{
+   if(p){
+    profile=p;updateHeader();
+    if($("wdBalance"))$("wdBalance").textContent="UGX "+fmt(p.balance);
+    try{
+     let v=await syncVip();
+     if($("wdVip"))$("wdVip").textContent="VIP "+v.level
+    }catch(e){}
+   }
+  }).catch(e=>console.log("Withdraw refresh:",e));
  }catch(e){console.log("Withdraw:",e);toast("Please try again.")}
 }
 
@@ -658,65 +284,35 @@ async function submitWithdraw(){
  let amount=Number($("wdAmount")?.value||0),phone=String($("wdPhone")?.value||"").trim();
  if(amount<5000||amount>5000000)return msg("wdMsg","Amount: UGX 5,000 – 5,000,000.","err");
  if(!validPhone(phone))return msg("wdMsg","Enter a valid phone number.","err");
- if(amount>Number(profile?.balance||0))return msg("wdMsg","Insufficient Balance.","err");
  if(!withdrawWindow())return msg("wdMsg","Withdrawals are closed.","err");
  busy("wdBtn","Submitting...");
  try{
+  if(withdrawRefreshPromise)await withdrawRefreshPromise.catch(()=>{});
+  let latest=await getProfile();if(latest){profile=latest;updateHeader()}
+  if(amount>Number(profile?.balance||0))throw Error("INSUFFICIENT");
   let now=new Date(),today=new Date(now);today.setHours(0,0,0,0);
   let q=await listRows(WITHDRAWALS_TABLE_ID,[Query.equal("userId",user.$id)]);
   let todayCount=q.filter(x=>{
    let d=new Date(x.createdat||x.$createdAt);d.setHours(0,0,0,0);
    return d.getTime()===today.getTime()&&!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())
   }).length;
-  if(todayCount>=3)return msg("wdMsg","Maximum 3 withdrawals per day.","err");
-
-  let oldBalance=Number(profile?.balance||0),
-  newBalance=oldBalance-amount;
-
+  if(todayCount>=3)throw Error("LIMIT");
+  let oldBalance=Number(profile.balance||0),newBalance=oldBalance-amount;
   await updateUser({balance:newBalance});
-
-  let data={
-   userId:String(user.$id),
-   username:String(profile?.username||""),
-   phone:String(phone),
-   amount:Number(amount),
-   paymentphone:String(phone),
-   status:"pending",
-   createdat:iso(now),
-   processedat:null,
-   transactionId:"",
-   note:"",
-   withdrawdate:now.toISOString().slice(0,10),
-   level:Number(profile?.viplevel||1),
-   tax:0,
-   processingminutes:0
-  };
-
+  let data={userId:String(user.$id),username:String(profile?.username||""),phone:String(phone),amount:Number(amount),paymentphone:String(phone),status:"pending",createdat:iso(now),processedat:null,transactionId:"",note:"",withdrawdate:now.toISOString().slice(0,10),level:Number(profile?.viplevel||1),tax:0,processingminutes:0};
   try{
-   await db.createRow({
-    databaseId:DATABASE_ID,
-    tableId:WITHDRAWALS_TABLE_ID,
-    rowId:ID.unique(),
-    data:data
-   });
-  }catch(e){
-   await updateUser({balance:oldBalance});
-   throw e;
-  }
-
-  profile.balance=newBalance;
-  updateHeader();
-  close();
-  toast("Withdrawal submitted successfully");
+   await db.createRow({databaseId:DATABASE_ID,tableId:WITHDRAWALS_TABLE_ID,rowId:ID.unique(),data})
+  }catch(e){await updateUser({balance:oldBalance});throw e}
+  profile.balance=newBalance;updateHeader();close();toast("Withdrawal submitted successfully")
  }catch(e){
   console.log("Withdrawal error:",e);
-  msg("wdMsg","Withdrawal could not be submitted. Please try again.","err");
- }finally{
-  ready("wdBtn","Submit");
- }
-    }
+  if(e.message==="INSUFFICIENT")msg("wdMsg","Insufficient Balance.","err");
+  else if(e.message==="LIMIT")msg("wdMsg","Maximum 3 withdrawals per day.","err");
+  else msg("wdMsg","Withdrawal could not be submitted. Please try again.","err")
+ }finally{ready("wdBtn","Submit");withdrawRefreshPromise=null}
+}
 
-const HARD_ANNOUNCEMENTS=[["Welcome","Welcome to Vortex. Enjoy Your Ride."],["Deposits","Use the recipient shown on your deposit request."],["Approval","Approved deposits enter Wallet."],["Withdrawals","Withdrawals: 8:00 AM – 2:00 PM.Up to 3 requests per day"],["Daily","Daily products credit each day for 20 days."],["Time","Time products return at maturity."],["Referrals","Referral earnings apply to the first successful purchase."],["VIP","VIP level follows active referrals."],["Security","Keep your password and transaction details private."],["Support","Use Group Chat or Chat with Admin for support."]];
+const HARD_ANNOUNCEMENTS=[["Welcome","Welcome to Vortex. Enjoy Your Ride."],["Deposits","Use the recipient shown on your deposit request."],["Approval","Approved deposits enter Wallet."],["Withdrawals","Withdrawals: 8:00 AM – 2:00 PM. Up to 3 requests per day"],["Daily","Daily products credit each day for 20 days."],["Time","Time products return at maturity."],["Referrals","Referral earnings apply to the first successful purchase."],["VIP","VIP level follows active referrals."],["Security","Keep your password and transaction details private."],["Support","Use Group Chat or Chat with Admin for support."]];
 const ADMIN_ANNOUNCEMENTS=[];
 function announcementHTML(){return[...HARD_ANNOUNCEMENTS,...ADMIN_ANNOUNCEMENTS].map(x=>`<div class="card"><b>${esc(x[0])}</b><div class="small" style="margin-top:5px;line-height:1.5">${esc(x[1])}</div></div>`).join("")}
 function announcements(){open(`<div class="mh"><h3>Announcements</h3><button class="close" data-action="close">×</button></div>${announcementHTML()}`)}
@@ -744,14 +340,13 @@ function helpPage(){
 <details class="helpItem"><summary>Time</summary><div class="helpBody"><p>Full return is credited at maturity.</p></div></details>
 <details class="helpItem"><summary>Security</summary><div class="helpBody"><p>Keep your password and transaction details private.</p></div></details>
 </div>`
-}
-
+    }
+    <script>
 function renderMy(){
  let p=profile;
  $("myContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">My Account</div><div class="card"><div class="small">Username</div><b>${esc(p?.username||"Loading...")}</b><div class="small" style="margin-top:9px">Email</div><b>${esc(p?.email||"Loading...")}</b><div class="small" style="margin-top:9px">Phone</div><b>${esc(p?.phone||"Loading...")}</b></div><div class="statGrid"><div class="statBox"><span class="small">Wallet</span><b>UGX ${fmt(p?.wallet)}</b></div><div class="statBox"><span class="small">Balance</span><b>UGX ${fmt(p?.balance)}</b></div><div class="statBox"><span class="small">VIP</span><b>${Number(p?.viplevel||1)}</b></div></div><div class="card" style="margin-top:10px"><div class="small">Referral earnings</div><div class="big">UGX ${fmt(p?.totalreferral)}</div></div>${investmentRecordsHTML()}<button class="guideBtn" data-action="help">▤ <span><b>Help & Guide</b></span>›</button><button class="primary danger" style="margin-top:10px" data-action="logout">Log Out</button>`
 }
-  </script>
-  <script>
+
 function home(){currentScreen="home";screen("homeScreen");nav("home");updateHeader();setWithdrawState()}
 
 async function login(){
@@ -765,15 +360,12 @@ async function login(){
   let p=r.rows[0];
   if(String(p.password||"")!==pass)throw Error("BAD_PASSWORD");
   if(p.blocked===true||String(p.status||"active").toLowerCase()==="blocked")throw Error("BLOCKED");
-  user={$id:p.$id};profile=p;
-  sessionStorage.setItem("vortexUserId",p.$id);
-  startSessionTimer();startLiveSync();home();await refreshAccount();toast("Welcome");
+  user={$id:p.$id};profile=p;sessionStorage.setItem("vortexUserId",p.$id);startSessionTimer();startLiveSync();home();await refreshAccount();toast("Welcome")
  }catch(e){
   console.log("Login:",e);
-  msg("loginMsg",e.message==="NOT_FOUND"?"Account not found.":e.message==="BAD_PASSWORD"?"Incorrect email or password.":e.message==="BLOCKED"?"Account blocked.":"Please try again.","err");
+  msg("loginMsg",e.message==="NOT_FOUND"?"Account not found.":e.message==="BAD_PASSWORD"?"Incorrect email or password.":e.message==="BLOCKED"?"Account blocked.":"Please try again.","err")
  }finally{ready("loginBtn","Sign In")}
 }
-
 
 async function register(){
  let username=$("regUsername").value.trim(),email=$("regEmail").value.trim().toLowerCase(),phone=$("regPhone").value.trim(),pass=$("regPass").value,confirm=$("regConfirm").value;
@@ -783,7 +375,7 @@ async function register(){
  if(pass.length<8)return msg("regMsg","Password must be at least 8 characters.","err");
  if(pass!==confirm)return msg("regMsg","Passwords do not match.","err");
  busy("regBtn","Creating...");
- let accountCreated=false,authCreated=false,rowId=ID.unique();
+ let accountCreated=false,rowId=ID.unique();
  try{
   let allUsers=await listRows(USERS_TABLE_ID),firstAccount=allUsers.length===0,refUser=null;
   if(!firstAccount){
@@ -793,166 +385,79 @@ async function register(){
    let refs=await db.listRows({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,queries:[Query.equal("username",ref),Query.limit(1)]});
    refUser=refs.rows[0]||allUsers.find(x=>String(x.username||"").trim().toLowerCase()===ref.toLowerCase())||null;
    if(!refUser)throw Error("BAD_REF");
-   if(String(refUser.username||"").trim().toLowerCase()===username.toLowerCase())throw Error("SELF_REF");
+   if(String(refUser.username||"").trim().toLowerCase()===username.toLowerCase())throw Error("SELF_REF")
   }
   if(allUsers.some(x=>String(x.phone||"").trim()===phone))throw Error("PHONE_EXISTS");
   if(allUsers.some(x=>String(x.email||"").trim().toLowerCase()===email))throw Error("EMAIL_EXISTS");
   if(allUsers.some(x=>String(x.username||"").trim().toLowerCase()===username.toLowerCase()))throw Error("USERNAME_EXISTS");
 
   await account.create(rowId,email,pass,username);
-  authCreated=true;
 
-  let u=await db.createRow({
-   databaseId:DATABASE_ID,
-   tableId:USERS_TABLE_ID,
-   rowId:rowId,
-   data:{
-    userId:rowId,
-    username,
-    phone,
-    email,
-    password:pass,
-    displayname:"Elyte",
-    wallet:0,
-    balance:0,
-    viplevel:1,
-    totalearned:0,
-    totalwithdrawn:0,
-    totaldeposited:0,
-    totalreferral:0,
-    blocked:false,
-    status:"active",
-    role:firstAccount?"admin":"user",
-    referralcode:username,
-    createdat:iso(new Date())
-   }
-  });
+  let u=await db.createRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:rowId,data:{userId:rowId,username,phone,email,password:pass,displayname:"Elyte",wallet:0,balance:0,viplevel:1,totalearned:0,totalwithdrawn:0,totaldeposited:0,totalreferral:0,blocked:false,status:"active",role:firstAccount?"admin":"user",referralcode:username,createdat:iso(new Date())}});
   accountCreated=true;
 
   if(refUser){
    try{
-    await db.createRow({
-     databaseId:DATABASE_ID,
-     tableId:REFERRALS_TABLE_ID,
-     rowId:ID.unique(),
-     data:{
-      referrerId:String(refUser.$id),
-      referrerusername:String(refUser.username||""),
-      referreduserId:String(u.$id),
-      referredusername:username,
-      referralcode:String(refUser.username||""),
-      status:"registered",
-      firstpurchase:false,
-      firstpurchaseamount:0,
-      bonusPercent:0,
-      bonusamount:0,
-      bonuspaid:false,
-      createdat:iso(new Date()),
-      activatedat:""
-     }
-    });
-   }catch(refErr){
-    console.log("Referral record:",refErr);
-   }
+    await db.createRow({databaseId:DATABASE_ID,tableId:REFERRALS_TABLE_ID,rowId:ID.unique(),data:{referrerId:String(refUser.$id),referrerusername:String(refUser.username||""),referreduserId:String(u.$id),referredusername:username,referralcode:String(refUser.username||""),status:"registered",firstpurchase:false,firstpurchaseamount:0,bonusPercent:0,bonusamount:0,bonuspaid:false,createdat:iso(new Date()),activatedat:""}})
+   }catch(e){console.log("Referral record:",e)}
   }
 
-  $("loginEmail").value=email;
-  $("loginPass").value="";
-  $("regUsername").value="";
-  $("regEmail").value="";
-  $("regPhone").value="";
-  $("regPass").value="";
-  $("regConfirm").value="";
-  $("registerBox").classList.add("hide");
-  $("loginBox").classList.remove("hide");
-  msg("loginMsg","Account created. Sign in.","ok");
-
+  $("loginEmail").value=email;$("loginPass").value="";$("regUsername").value="";$("regEmail").value="";$("regPhone").value="";$("regPass").value="";$("regConfirm").value="";
+  $("registerBox").classList.add("hide");$("loginBox").classList.remove("hide");msg("loginMsg","Account created. Sign in.","ok")
  }catch(e){
   console.log("Register:",e);
   if(accountCreated){
-   $("loginEmail").value=email;
-   $("loginPass").value="";
-   $("registerBox").classList.add("hide");
-   $("loginBox").classList.remove("hide");
-   msg("loginMsg","Account created. Sign in.","ok");
+   $("loginEmail").value=email;$("loginPass").value="";$("registerBox").classList.add("hide");$("loginBox").classList.remove("hide");msg("loginMsg","Account created. Sign in.","ok")
   }else{
-   let errorText=String(e.message||"").toLowerCase();
-   let duplicate=errorText.includes("already exists")||errorText.includes("same email")||errorText.includes("same id");
-   msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":duplicate?"This email or account already exists in Appwrite Auth. Do not retry with this email.":"Registration could not be completed. Please try again.","err");
+   let errorText=String(e.message||"").toLowerCase(),duplicate=errorText.includes("already exists")||errorText.includes("same email")||errorText.includes("same id");
+   msg("regMsg",e.message==="NO_REF"?"Open a valid Vortex referral link.":e.message==="BAD_REF"?"This referral link is not valid.":e.message==="SELF_REF"?"You cannot use your own referral link.":e.message==="PHONE_EXISTS"?"Phone already registered.":e.message==="EMAIL_EXISTS"?"Email already registered.":e.message==="USERNAME_EXISTS"?"Username already taken.":duplicate?"This email or account already exists in Appwrite Auth. Do not retry with this email.":"Registration could not be completed. Please try again.","err")
   }
- }finally{
-  ready("regBtn","Create Account");
- }
-                                                                                              }
-    
-
-  
+ }finally{ready("regBtn","Create Account")}
+}
 
 function logout(){
  clearInterval(sessionTimer);sessionTimer=null;clearInterval(liveTimer);liveTimer=null;
- user=null;profile=null;
+ user=null;profile=null;withdrawRefreshPromise=null;
  sessionStorage.removeItem("vortexUserId");sessionStorage.removeItem("vortexLastActivity");
- screen("authScreen");$("bottomNav").classList.add("hide");$("loginBox").classList.remove("hide");$("registerBox").classList.add("hide");$("loginEmail").value="";$("loginPass").value="";
+ screen("authScreen");$("bottomNav").classList.add("hide");$("loginBox").classList.remove("hide");$("registerBox").classList.add("hide");$("loginEmail").value="";$("loginPass").value=""
 }
 
 function showRegister(){$("loginBox").classList.add("hide");$("registerBox").classList.remove("hide")}
 function showLogin(){$("registerBox").classList.add("hide");$("loginBox").classList.remove("hide")}
 
-const SESSION_LIMIT=600000;
-let lastActivity=0;
-
-function touchActivity(){
- if(!user)return;
- lastActivity=Date.now();
- try{sessionStorage.setItem("vortexLastActivity",String(lastActivity))}catch(e){}
-}
-function validSession(){
- try{let x=Number(sessionStorage.getItem("vortexLastActivity")||0);return!x||Date.now()-x<SESSION_LIMIT}catch(e){return false}
-}
+const SESSION_LIMIT=600000;let lastActivity=0;
+function touchActivity(){if(!user)return;lastActivity=Date.now();try{sessionStorage.setItem("vortexLastActivity",String(lastActivity))}catch(e){}}
+function validSession(){try{let x=Number(sessionStorage.getItem("vortexLastActivity")||0);return!x||Date.now()-x<SESSION_LIMIT}catch(e){return false}}
 function forceSessionLogout(){if(user){logout();toast("Session expired")}}
-function startSessionTimer(){
- clearInterval(sessionTimer);touchActivity();
- sessionTimer=setInterval(()=>{if(user&&Date.now()-lastActivity>=SESSION_LIMIT)forceSessionLogout()},5000)
-}
+function startSessionTimer(){clearInterval(sessionTimer);touchActivity();sessionTimer=setInterval(()=>{if(user&&Date.now()-lastActivity>=SESSION_LIMIT)forceSessionLogout()},5000)}
+
 function startLiveSync(){
  clearInterval(liveTimer);
- liveTimer=setInterval(()=>{
-  if(user)refreshAccount().then(()=>{
-   if(currentScreen==="my")renderMy();
-   setWithdrawState();
-  }).catch(e=>console.log("Live sync:",e))
- },30000)
-   }
-
-async function restoreSession(){
- let id=sessionStorage.getItem("vortexUserId");
- if(!id||!validSession())return;
- try{
-  let p=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:id});
-  if(!p||p.blocked===true||String(p.status||"active").toLowerCase()==="blocked"){
-   sessionStorage.removeItem("vortexUserId");sessionStorage.removeItem("vortexLastActivity");return
-  }
-  user={$id:p.$id};profile=p;startSessionTimer();startLiveSync();home();await refreshAccount();
- }catch(e){console.log("Restore:",e);sessionStorage.removeItem("vortexUserId")}
+ liveTimer=setInterval(()=>{if(user)refreshAccount().then(()=>{if(currentScreen==="my")renderMy();setWithdrawState()}).catch(e=>console.log("Live sync:",e))},30000)
 }
 
+async function restoreSession(){
+ let id=sessionStorage.getItem("vortexUserId");if(!id||!validSession())return;
+ try{
+  let p=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:id});
+  if(!p||p.blocked===true||String(p.status||"active").toLowerCase()==="blocked"){sessionStorage.removeItem("vortexUserId");sessionStorage.removeItem("vortexLastActivity");return}
+  user={$id:p.$id};profile=p;startSessionTimer();startLiveSync();home();await refreshAccount()
+ }catch(e){console.log("Restore:",e);sessionStorage.removeItem("vortexUserId")}
+    }
+    
+ <script>
 async function adminPanel(){
  if(!profile||String(profile.role||"").toLowerCase()!=="admin"){toast("Admin access required.");return}
  currentScreen="admin";screen("adminScreen");nav("home");
  $("adminContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">Admin Panel</div><div class="empty">Loading...</div>`;
  try{
   let[d,w,u]=await Promise.all([listRows(DEPOSITS_TABLE_ID),listRows(WITHDRAWALS_TABLE_ID),listRows(USERS_TABLE_ID)]);
-  $("adminContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">Admin Panel</div><div class="statGrid"><div class="statBox"><span class="small">Accounts</span><b>${u.length}</b></div><div class="statBox"><span class="small">Deposits</span><b>${d.length}</b></div><div class="statBox"><span class="small">Withdrawals</span><b>${w.length}</b></div></div><div class="sectionTitle">Deposits</div>${d.filter(x=>String(x.status||"").toLowerCase()==="pending").map(adminDepositCard).join("")||`<div class="empty">No pending deposits.</div>`}<div class="sectionTitle">Withdrawals</div>${w.filter(x=>String(x.status||"").toLowerCase()==="pending").map(adminWithdrawalCard).join("")||`<div class="empty">No pending withdrawals.</div>`}<div class="sectionTitle">Announcements</div><div class="card"><div class="small">Announcement storage</div><b>ADMIN_ANNOUNCEMENTS</b></div>`;
+  $("adminContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">Admin Panel</div><div class="statGrid"><div class="statBox"><span class="small">Accounts</span><b>${u.length}</b></div><div class="statBox"><span class="small">Deposits</span><b>${d.length}</b></div><div class="statBox"><span class="small">Withdrawals</span><b>${w.length}</b></div></div><div class="sectionTitle">Deposits</div>${d.filter(x=>String(x.status||"").toLowerCase()==="pending").map(adminDepositCard).join("")||`<div class="empty">No pending deposits.</div>`}<div class="sectionTitle">Withdrawals</div>${w.filter(x=>String(x.status||"").toLowerCase()==="pending").map(adminWithdrawalCard).join("")||`<div class="empty">No pending withdrawals.</div>`}<div class="sectionTitle">Announcements</div><div class="card"><div class="small">Announcement storage</div><b>ADMIN_ANNOUNCEMENTS</b></div>`
  }catch(e){console.log("Admin:",e);$("adminContent").innerHTML+=`<div class="msg err">Please try again.</div>`}
 }
 
-function adminDepositCard(x){
- return`<div class="card"><b>${esc(x.username||"User")}</b><div class="small">UGX ${fmt(x.amount)} • ${esc(x.phone||"")}</div><div class="small">TX: ${esc(x.transactionId||"")}</div><div class="small">Recipient: ${esc(x.recepient||"")}</div><div class="actions"><button class="primary" data-action="admin-deposit" data-id="${x.$id}">Approve</button><button class="primary danger" data-action="admin-deposit-reject" data-id="${x.$id}">Reject</button></div></div>`
-}
-
-function adminWithdrawalCard(x){
- return`<div class="card"><b>${esc(x.username||"User")}</b><div class="small">UGX ${fmt(x.amount)} • ${esc(x.phone||"")}</div><div class="actions"><button class="primary" data-action="admin-withdrawal" data-id="${x.$id}">Approve</button><button class="primary danger" data-action="admin-withdrawal-reject" data-id="${x.$id}">Reject</button></div></div>`
-}
+function adminDepositCard(x){return`<div class="card"><b>${esc(x.username||"User")}</b><div class="small">UGX ${fmt(x.amount)} • ${esc(x.phone||"")}</div><div class="small">TX: ${esc(x.transactionId||"")}</div><div class="small">Recipient: ${esc(x.recepient||"")}</div><div class="actions"><button class="primary" data-action="admin-deposit" data-id="${x.$id}">Approve</button><button class="primary danger" data-action="admin-deposit-reject" data-id="${x.$id}">Reject</button></div></div>`}
+function adminWithdrawalCard(x){return`<div class="card"><b>${esc(x.username||"User")}</b><div class="small">UGX ${fmt(x.amount)} • ${esc(x.phone||"")}</div><div class="actions"><button class="primary" data-action="admin-withdrawal" data-id="${x.$id}">Approve</button><button class="primary danger" data-action="admin-withdrawal-reject" data-id="${x.$id}">Reject</button></div></div>`}
 
 async function adminDeposit(id,approve=true){
  try{
@@ -960,73 +465,79 @@ async function adminDeposit(id,approve=true){
   if(String(x.status||"").toLowerCase()!=="pending")throw Error("processed");
   if(approve){
    let u=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId});
-   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId,data:{wallet:Number(u.wallet||0)+Number(x.amount||0),totaldeposited:Number(u.totaldeposited||0)+Number(x.amount||0)}});
+   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId,data:{wallet:Number(u.wallet||0)+Number(x.amount||0),totaldeposited:Number(u.totaldeposited||0)+Number(x.amount||0)}})
   }
   await db.updateRow({databaseId:DATABASE_ID,tableId:DEPOSITS_TABLE_ID,rowId:id,data:{status:approve?"approved":"rejected",processedat:iso(new Date())}});
-  toast(approve?"Deposit approved":"Deposit rejected");adminPanel();
+  toast(approve?"Deposit approved":"Deposit rejected");adminPanel()
  }catch(e){console.log("Admin deposit:",e);toast("Please try again.")}
 }
+
 async function adminWithdrawal(id,approve=true){
  try{
   let x=await db.getRow({databaseId:DATABASE_ID,tableId:WITHDRAWALS_TABLE_ID,rowId:id});
   if(String(x.status||"").toLowerCase()!=="pending")throw Error("processed");
-
-  let u=await db.getRow({
-   databaseId:DATABASE_ID,
-   tableId:USERS_TABLE_ID,
-   rowId:x.userId
-  });
-
-  let amount=Number(x.amount||0);
-
+  let u=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId}),amount=Number(x.amount||0);
   if(approve){
-   await db.updateRow({
-    databaseId:DATABASE_ID,
-    tableId:USERS_TABLE_ID,
-    rowId:x.userId,
-    data:{
-     totalwithdrawn:Number(u.totalwithdrawn||0)+amount
-    }
-   });
+   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId,data:{totalwithdrawn:Number(u.totalwithdrawn||0)+amount}})
   }else{
-   await db.updateRow({
-    databaseId:DATABASE_ID,
-    tableId:USERS_TABLE_ID,
-    rowId:x.userId,
-    data:{
-     balance:Number(u.balance||0)+amount
-    }
-   });
+   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId,data:{balance:Number(u.balance||0)+amount}})
   }
-
-  await db.updateRow({
-   databaseId:DATABASE_ID,
-   tableId:WITHDRAWALS_TABLE_ID,
-   rowId:id,
-   data:{
-    status:approve?"approved":"rejected",
-    processedat:iso(new Date())
-   }
-  });
-
-  toast(approve?"Withdrawal approved":"Withdrawal rejected");
-  adminPanel();
- }catch(e){
-  console.log("Admin withdrawal:",e);
-  toast("Please try again.");
- }
-     }
+  await db.updateRow({databaseId:DATABASE_ID,tableId:WITHDRAWALS_TABLE_ID,rowId:id,data:{status:approve?"approved":"rejected",processedat:iso(new Date())}});
+  toast(approve?"Withdrawal approved":"Withdrawal rejected");adminPanel()
+ }catch(e){console.log("Admin withdrawal:",e);toast("Please try again.")}
+}
 
 async function my(){
  currentScreen="my";screen("myScreen");nav("my");renderMy();
  try{await refreshAccount();await loadInvestmentRecords();renderMy()}catch(e){console.log("My:",e);renderMy()}
 }
 
+/* CENTRAL ACTION HANDLER
+   This was missing from the pasted version and caused
+   buttons/data-action controls not to respond.
+*/
+document.addEventListener("click",async e=>{
+ let b=e.target.closest("[data-action]");if(!b)return;
+ let a=b.dataset.action,id=b.dataset.id;
+ try{
+  if(a==="login")return login();
+  if(a==="register")return register();
+  if(a==="show-register")return showRegister();
+  if(a==="show-login")return showLogin();
+  if(a==="home"||a==="back-home")return home();
+  if(a==="invite")return invite();
+  if(a==="my")return my();
+  if(a==="daily")return category("daily");
+  if(a==="time")return category("time");
+  if(a==="vault")return vault();
+  if(a==="help")return helpPage();
+  if(a==="chat")return chat();
+  if(a==="close")return close();
+  if(a==="deposit")return deposit();
+  if(a==="withdraw")return withdraw();
+  if(a==="submit-deposit")return submitDeposit();
+  if(a==="submit-withdraw")return submitWithdraw();
+  if(a==="copy-recipient")return copyText(selectedRecipient);
+  if(a==="buy")return buy(id);
+  if(a==="purchase")return purchase(id);
+  if(a==="copy-ref")return copyText(referralLink());
+  if(a==="share-ref")return shareReferral();
+  if(a==="announcements")return announcements();
+  if(a==="logout")return logout();
+  if(a==="admin-deposit")return adminDeposit(id,true);
+  if(a==="admin-deposit-reject")return adminDeposit(id,false);
+  if(a==="admin-withdrawal")return adminWithdrawal(id,true);
+  if(a==="admin-withdrawal-reject")return adminWithdrawal(id,false);
+  if(a==="chat-group"){toast("Group Chat link can be connected here.");return}
+  if(a==="chat-admin"){toast("Admin chat link can be connected here.");return}
+ }catch(err){console.log("Action:",a,err);toast("Please try again.")}
+});
+
 $("modalBg").addEventListener("click",e=>{if(e.target===$("modalBg"))close()});
 ["pointerdown","keydown","scroll","focus"].forEach(e=>document.addEventListener(e,touchActivity,{passive:true}));
 setInterval(setWithdrawState,30000);
 setWithdrawState();
 restoreSession();
-</script>
-</body>
-</html>
+</script></body></html>
+   
+   
