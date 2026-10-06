@@ -371,9 +371,103 @@ function helpPage(){
 <script>
 function renderMy(){
  let p=profile;
- $("myContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">My Account</div><div class="card"><div class="small">Username</div><b>${esc(p?.username||"Loading...")}</b><div class="small" style="margin-top:9px">Email</div><b>${esc(p?.email||"Loading...")}</b><div class="small" style="margin-top:9px">Phone</div><b>${esc(p?.phone||"Loading...")}</b></div><div class="statGrid"><div class="statBox"><span class="small">Wallet</span><b>UGX ${fmt(p?.wallet)}</b></div><div class="statBox"><span class="small">Balance</span><b>UGX ${fmt(p?.balance)}</b></div><div class="statBox"><span class="small">VIP</span><b>${Number(p?.viplevel||1)}</b></div></div><div class="card" style="margin-top:10px"><div class="small">Referral earnings</div><div class="big">UGX ${fmt(p?.totalreferral)}</div></div>${investmentRecordsHTML()}<button class="guideBtn" data-action="help">▤ <span><b>Help & Guide</b></span>›</button><button class="primary danger" style="margin-top:10px" data-action="logout">Log Out</button>`
+ $("myContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="title">My Account</div><div class="card"><div class="small">Username</div><b>${esc(p?.username||"Loading...")}</b><div class="small" style="margin-top:9px">Email</div><b>${esc(p?.email||"Loading...")}</b><div class="small" style="margin-top:9px">Phone</div><b>${esc(p?.phone||"Loading...")}</b></div><div class="statGrid"><div class="statBox"><span class="small">Wallet</span><b>UGX ${fmt(p?.wallet)}</b></div><div class="statBox"><span class="small">Balance</span><b>UGX ${fmt(p?.balance)}</b></div><div class="statBox"><span class="small">VIP</span><b>${Number(p?.viplevel||1)}</b></div></div><div class="card" style="margin-top:10px"><div class="small">Referral earnings</div><div class="big">UGX ${fmt(p?.totalreferral)}</div></div>${investmentRecordsHTML()}<button class="guideBtn" data-action="transactions">💳 <span><b>Transactions</b><small>Track deposits and withdrawals</small></span>›</button><button class="guideBtn" data-action="help">▤ <span><b>Help & Guide</b></span>›</button><button class="primary danger" style="margin-top:10px" data-action="logout">Log Out</button>`
+}
+function transactionDate(x){
+ let d=new Date(x.createdat||x.$createdAt||Date.now());
+ return isNaN(d.getTime())?"—":d.toLocaleString("en-UG",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})
 }
 
+function transactionStatus(status){
+ let s=String(status||"pending").toLowerCase();
+ if(s==="approved")return`<span style="color:#216b35;font-weight:900">🟢 APPROVED</span>`;
+ if(s==="rejected")return`<span style="color:#9b3b32;font-weight:900">🔴 REJECTED</span>`;
+ return`<span style="color:#9a7a25;font-weight:900">🟡 PROCESSING</span>`
+}
+
+function withdrawalCountdown(x){
+ let status=String(x.status||"pending").toLowerCase();
+ if(status!=="pending")return"";
+ let level=Math.max(1,Math.min(6,Number(x.level||profile?.viplevel||1)));
+ let vip=VIP_LEVELS[level-1]||VIP_LEVELS[0];
+ let start=new Date(x.createdat||x.$createdAt||Date.now()).getTime();
+ let end=start+Number(vip.minutes||20)*60000;
+ let left=end-Date.now();
+ if(left<=0)return`<div class="small" style="margin-top:7px;color:#9a7a25;font-weight:900">⏳ Awaiting admin processing</div>`;
+ let total=Math.floor(left/1000),m=Math.floor(total/60),s=total%60;
+ return`<div class="small" style="margin-top:7px;color:#216b35;font-weight:900">⏳ Processing time: ${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} remaining</div>`
+}
+
+function transactionCard(x,type){
+ let isDeposit=type==="deposit",status=String(x.status||"pending").toLowerCase(),amount=Number(x.amount||0);
+ let extra="";
+ if(isDeposit){
+  extra=`<div class="small" style="margin-top:7px">Transaction ID: <b>${esc(x.transactionId||"—")}</b></div>
+  <div class="small" style="margin-top:4px">Phone: ${esc(x.phone||"—")}</div>
+  <div class="small" style="margin-top:4px">Recipient: ${esc(x.recepient||x.recipient||"—")}</div>`;
+  if(status==="approved")extra+=`<div class="msg ok" style="margin-top:9px">🟢 Deposit approved and added to Wallet.</div>`;
+  if(status==="rejected")extra+=`<div class="msg err" style="margin-top:9px">🔴 Deposit rejected.</div>`;
+ }else{
+  extra=`<div class="small" style="margin-top:7px">Withdraw number: <b>${esc(x.phone||x.paymentphone||"—")}</b></div>
+  <div class="small" style="margin-top:4px">Requested: ${transactionDate(x)}</div>
+  ${withdrawalCountdown(x)}`;
+  if(status==="approved"){
+   let level=Math.max(1,Math.min(6,Number(x.level||profile?.viplevel||1))),vip=VIP_LEVELS[level-1]||VIP_LEVELS[0],tax=Number(x.tax||vip.tax||0),net=Math.max(0,amount-Math.round(amount*tax/100));
+   extra+=`<div class="msg ok" style="margin-top:9px">🟢 Withdrawal approved.<br>Net payout: <b>UGX ${fmt(net)}</b></div>`;
+  }
+  if(status==="rejected")extra+=`<div class="msg err" style="margin-top:9px">🔴 Withdrawal rejected.<br>UGX ${fmt(amount)} returned to your Balance.</div>`;
+ }
+ return`<div class="card" style="background:#fffdf5;border:1px solid #dce7d9">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+   <div>
+    <div style="font-size:13px;font-weight:900">${isDeposit?"💳 Deposit":"💸 Withdrawal"}</div>
+    <div class="small" style="margin-top:4px">${transactionDate(x)}</div>
+   </div>
+   <div style="text-align:right">${transactionStatus(status)}</div>
+  </div>
+  <div style="font-size:23px;font-weight:900;margin:12px 0">UGX ${fmt(amount)}</div>
+  ${extra}
+ </div>`
+}
+
+async function loadTransactions(){
+ if(!user)return{deposits:[],withdrawals:[]};
+ try{
+  let[d,w]=await Promise.all([
+   listRows(DEPOSITS_TABLE_ID,[Query.equal("userId",user.$id)]),
+   listRows(WITHDRAWALS_TABLE_ID,[Query.equal("userId",user.$id)])
+  ]);
+  return{
+   deposits:(d||[]).sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt)),
+   withdrawals:(w||[]).sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt))
+  }
+ }catch(e){
+  console.log("Transactions:",e);
+  return{deposits:[],withdrawals:[]}
+}
+
+async function transactions(){
+ currentScreen="transactions";
+ screen("myScreen");
+ nav("my");
+ $("myContent").innerHTML=`<button class="back" data-action="back-home">← Home</button>
+ <div class="title">Transactions</div>
+ <div class="sub">Track your deposits and withdrawals.</div>
+ <div class="card"><div class="empty">Loading transactions...</div></div>`;
+ let data=await loadTransactions();
+ let all=[
+  ...data.deposits.map(x=>({...x,_type:"deposit"})),
+  ...data.withdrawals.map(x=>({...x,_type:"withdrawal"}))
+ ].sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt));
+ $("myContent").innerHTML=`<button class="back" data-action="back-home">← Home</button>
+ <div class="title">Transactions</div>
+ <div class="sub">Track your deposits and withdrawals.</div>
+ <div class="card" style="background:#dcebd8">
+  <div class="small">Transaction history</div>
+  <div style="font-size:13px;font-weight:900;margin-top:5px">${all.length} transaction${all.length===1?"":"s"}</div>
+ </div>
+ ${all.length?all.map(x=>transactionCard(x,x._type)).join(""):`<div class="card"><div class="empty">No transactions yet.</div></div>`}`
+ }
 function home(){
  currentScreen="home";screen("homeScreen");nav("home");updateHeader();setWithdrawState()
 }
@@ -623,6 +717,7 @@ document.addEventListener("click",async e=>{
    case"back-home":return home();
    case"invite":return invite();
    case"my":return await my();
+    case"transactions":return await transactions();
    case"daily":return category("daily");
    case"time":return category("time");
    case"vault":return vault();
@@ -660,7 +755,9 @@ $("modalBg").addEventListener("click",e=>{
 ["pointerdown","keydown","scroll","focus"].forEach(ev=>{
  document.addEventListener(ev,touchActivity,{passive:true})
 });
-
+setInterval(()=>{
+ if(user&&currentScreen==="transactions")transactions()
+},1000);
 setInterval(setWithdrawState,30000);
 setWithdrawState();
 restoreSession();
