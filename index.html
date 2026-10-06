@@ -268,22 +268,35 @@ async function processInvestments(){
    start=x.startat||x.createdat,
    dur=Math.max(1,Number(x.duration||20));
 
-   if(!start||["rejected","cancelled"].includes(status)||!["daily","time"].includes(cat))continue;
+   if(!start||["rejected","cancelled","completed","matured","expired"].includes(status)||!["daily","time"].includes(cat))continue;
 
    let credited=Number(x.creditedamount||0),add=0,finished=false,endDate=null;
 
    if(cat==="daily"){
-    let daily=Number(x.dailycredit||0),
-    progress=Math.min(dur,calendarDayNumber(start,new Date()));
-    add=Math.max(0,progress*daily-credited);
+    /*
+     DAILY RULE:
+     Every completed earning day = exactly 10% of the
+     original purchase amount.
+    */
+    let daily=Math.floor(Number(x.amount||0)*0.10);
+    let progress=Math.min(dur,calendarDayNumber(start,new Date()));
+
+    let expected=Math.min(progress,dur)*daily;
+    add=Math.max(0,expected-credited);
+
     finished=progress>=dur;
+
     endDate=dayStart(start);
     endDate.setDate(endDate.getDate()+dur-1);
    }else{
     let progress=Math.min(dur,workingDaysPassed(start,new Date()));
+
     endDate=addWorkingDaysInclusive(start,dur);
     finished=progress>=dur;
-    if(finished)add=Math.max(0,Number(x.returnamount||0)-credited);
+
+    if(finished){
+     add=Math.max(0,Number(x.returnamount||0)-credited);
+    }
    }
 
    if(add>0){
@@ -291,6 +304,7 @@ async function processInvestments(){
      balance:Number(profile.balance||0)+add,
      totalearned:Number(profile.totalearned||0)+add
     });
+
     if(r){
      profile.balance=Number(profile.balance||0)+add;
      profile.totalearned=Number(profile.totalearned||0)+add;
@@ -301,7 +315,11 @@ async function processInvestments(){
    let ns=finished?(cat==="time"?"matured":"completed"):"active",
    ea=endDate?iso(endDate):"";
 
-   if(credited!==Number(x.creditedamount||0)||ns!==status||String(x.endat||"")!==ea){
+   if(
+    credited!==Number(x.creditedamount||0)||
+    ns!==status||
+    String(x.endat||"")!==ea
+   ){
     try{
      await db.updateRow({
       databaseId:DATABASE_ID,
@@ -314,13 +332,17 @@ async function processInvestments(){
        endat:ea
       }
      });
-    }catch(e){console.log("Investment update:",e)}
+    }catch(e){
+     console.log("Investment update:",e);
+    }
    }
   }
- }catch(e){console.log("Earnings sync:",e)}
- finally{busyInvestment=false}
+ }catch(e){
+  console.log("Earnings sync:",e);
+ }finally{
+  busyInvestment=false;
+ }
   }
-
 async function loadInvestmentRecords(){
  if(!user){investmentRecords=[];return}
  try{
@@ -646,7 +668,7 @@ async function submitWithdraw(){
    let d=new Date(x.createdat||x.$createdAt);d.setHours(0,0,0,0);
    return d.getTime()===today.getTime()&&!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())
   });
-  if(already)return msg("wdMsg","One withdrawal per day.","err");
+  if(already)return msg("wdMsg","Maximum 3 withdrawals per day.","err");
   let data={
    userId:String(user.$id),
    username:String(profile?.username||""),
@@ -680,7 +702,7 @@ async function submitWithdraw(){
  }
 }
 
-const HARD_ANNOUNCEMENTS=[["Welcome","Welcome to Vortex. Enjoy Your Ride."],["Deposits","Use the recipient shown on your deposit request."],["Approval","Approved deposits enter Wallet."],["Withdrawals","Withdrawals: 8:00 AM – 2:00 PM."],["Daily","Daily products credit each day for 20 days."],["Time","Time products return at maturity."],["Referrals","Referral earnings apply to the first successful purchase."],["VIP","VIP level follows active referrals."],["Security","Keep your password and transaction details private."],["Support","Use Group Chat or Chat with Admin for support."]];
+const HARD_ANNOUNCEMENTS=[["Welcome","Welcome to Vortex. Enjoy Your Ride."],["Deposits","Use the recipient shown on your deposit request."],["Approval","Approved deposits enter Wallet."],["Withdrawals","Withdrawals: 8:00 AM – 2:00 PM.Up to 3 requests per day"],["Daily","Daily products credit each day for 20 days."],["Time","Time products return at maturity."],["Referrals","Referral earnings apply to the first successful purchase."],["VIP","VIP level follows active referrals."],["Security","Keep your password and transaction details private."],["Support","Use Group Chat or Chat with Admin for support."]];
 const ADMIN_ANNOUNCEMENTS=[];
 function announcementHTML(){return[...HARD_ANNOUNCEMENTS,...ADMIN_ANNOUNCEMENTS].map(x=>`<div class="card"><b>${esc(x[0])}</b><div class="small" style="margin-top:5px;line-height:1.5">${esc(x[1])}</div></div>`).join("")}
 function announcements(){open(`<div class="mh"><h3>Announcements</h3><button class="close" data-action="close">×</button></div>${announcementHTML()}`)}
@@ -701,7 +723,7 @@ function helpPage(){
  $("helpContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="guideHead"><span>VORTEX</span><b>Help & Guide</b><p>Quick guide</p></div><div class="helpList">
 <details class="helpItem" open><summary>Welcome</summary><div class="helpBody"><p>Welcome to Vortex. Enjoy Your Ride.</p></div></details>
 <details class="helpItem"><summary>How to Deposit</summary><div class="helpBody"><ol><li>Open Deposit.</li><li>Use the displayed recipient.</li><li>Send your amount.</li><li>Enter amount, phone and transaction ID.</li><li>Submit.</li></ol></div></details>
-<details class="helpItem"><summary>How to Withdraw</summary><div class="helpBody"><ol><li>Open Withdraw from 8:00 AM to 2:00 PM.</li><li>Enter amount.</li><li>Enter phone number.</li><li>Submit.</li><li>One request per day.</li></ol></div></details>
+<details class="helpItem"><summary>How to Withdraw</summary><div class="helpBody"><ol><li>Open Withdraw from 8:00 AM to 2:00 PM.</li><li>Enter amount.</li><li>Enter phone number.</li><li>Submit.</li><li>Up to 3 withdraw requests per day.</li></ol></div></details>
 <details class="helpItem"><summary>How to Invite</summary><div class="helpBody"><ol><li>Open Invite.</li><li>Copy or share your link.</li><li>The system tracks referrals automatically.</li><li>Earnings apply to the first successful purchase.</li></ol></div></details>
 <details class="helpItem"><summary>VIP Levels</summary><div class="helpBody"><div class="vipTable"><table><thead><tr><th>VIP</th><th>Active referrals</th><th>Time</th><th>Tax</th><th>Referral</th></tr></thead><tbody>${VIP_LEVELS.map(v=>`<tr><td>VIP ${v.level}</td><td>${v.active}</td><td>${v.minutes} min</td><td>${v.tax}%</td><td>${v.ref}%</td></tr>`).join("")}</tbody></table></div></div></details>
 <details class="helpItem"><summary>Daily</summary><div class="helpBody"><p>10% daily credit for 20 days.</p></div></details>
