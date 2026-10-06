@@ -664,11 +664,17 @@ async function submitWithdraw(){
  try{
   let now=new Date(),today=new Date(now);today.setHours(0,0,0,0);
   let q=await listRows(WITHDRAWALS_TABLE_ID,[Query.equal("userId",user.$id)]);
-  let already=q.some(x=>{
+  let todayCount=q.filter(x=>{
    let d=new Date(x.createdat||x.$createdAt);d.setHours(0,0,0,0);
    return d.getTime()===today.getTime()&&!["rejected","cancelled"].includes(String(x.status||"").toLowerCase())
-  });
-  if(already)return msg("wdMsg","Maximum 3 withdrawals per day.","err");
+  }).length;
+  if(todayCount>=3)return msg("wdMsg","Maximum 3 withdrawals per day.","err");
+
+  let oldBalance=Number(profile?.balance||0),
+  newBalance=oldBalance-amount;
+
+  await updateUser({balance:newBalance});
+
   let data={
    userId:String(user.$id),
    username:String(profile?.username||""),
@@ -685,13 +691,21 @@ async function submitWithdraw(){
    tax:0,
    processingminutes:0
   };
-  console.log("Withdrawal data:",data);
-  await db.createRow({
-   databaseId:DATABASE_ID,
-   tableId:WITHDRAWALS_TABLE_ID,
-   rowId:ID.unique(),
-   data:data
-  });
+
+  try{
+   await db.createRow({
+    databaseId:DATABASE_ID,
+    tableId:WITHDRAWALS_TABLE_ID,
+    rowId:ID.unique(),
+    data:data
+   });
+  }catch(e){
+   await updateUser({balance:oldBalance});
+   throw e;
+  }
+
+  profile.balance=newBalance;
+  updateHeader();
   close();
   toast("Withdrawal submitted successfully");
  }catch(e){
@@ -700,7 +714,7 @@ async function submitWithdraw(){
  }finally{
   ready("wdBtn","Submit");
  }
-}
+    }
 
 const HARD_ANNOUNCEMENTS=[["Welcome","Welcome to Vortex. Enjoy Your Ride."],["Deposits","Use the recipient shown on your deposit request."],["Approval","Approved deposits enter Wallet."],["Withdrawals","Withdrawals: 8:00 AM – 2:00 PM.Up to 3 requests per day"],["Daily","Daily products credit each day for 20 days."],["Time","Time products return at maturity."],["Referrals","Referral earnings apply to the first successful purchase."],["VIP","VIP level follows active referrals."],["Security","Keep your password and transaction details private."],["Support","Use Group Chat or Chat with Admin for support."]];
 const ADMIN_ANNOUNCEMENTS=[];
@@ -952,59 +966,56 @@ async function adminDeposit(id,approve=true){
   toast(approve?"Deposit approved":"Deposit rejected");adminPanel();
  }catch(e){console.log("Admin deposit:",e);toast("Please try again.")}
 }
-
 async function adminWithdrawal(id,approve=true){
  try{
   let x=await db.getRow({databaseId:DATABASE_ID,tableId:WITHDRAWALS_TABLE_ID,rowId:id});
   if(String(x.status||"").toLowerCase()!=="pending")throw Error("processed");
-  if(approve){
-   let u=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId});
-   if(Number(u.balance||0)<Number(x.amount||0)){toast("Insufficient Balance.");return}
-   await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:x.userId,data:{balance:Number(u.balance||0)-Number(x.amount||0),totalwithdrawn:Number(u.totalwithdrawn||0)+Number(x.amount||0)}});
-  }
-  await db.updateRow({databaseId:DATABASE_ID,tableId:WITHDRAWALS_TABLE_ID,rowId:id,data:{status:approve?"approved":"rejected",processedat:iso(new Date())}});
-  toast(approve?"Withdrawal approved":"Withdrawal rejected");adminPanel();
- }catch(e){console.log("Admin withdrawal:",e);toast("Please try again.")}
-}
 
-document.addEventListener("click",async e=>{
- let b=e.target.closest("[data-action]");if(!b)return;
- let a=b.dataset.action;
- try{
-  if(a==="login")return login();
-  if(a==="register")return register();
-  if(a==="show-register")return showRegister();
-  if(a==="show-login")return showLogin();
-  if(a==="deposit")return deposit();
-  if(a==="withdraw")return withdraw();
-  if(a==="daily")return category("daily");
-  if(a==="time")return category("time");
-  if(a==="vault")return vault();
-  if(a==="help")return helpPage();
-  if(a==="chat")return chat();
-  if(a==="home")return home();
-  if(a==="invite")return invite();
-  if(a==="my")return my();
-  if(a==="close")return close();
-  if(a==="back-home")return home();
-  if(a==="buy")return buy(b.dataset.id);
-  if(a==="purchase")return purchase(b.dataset.id);
-  if(a==="copy-ref")return copyText(referralLink());
-  if(a==="share-ref")return shareReferral();
-  if(a==="copy-recipient")return copyText(selectedRecipient);
-  if(a==="submit-deposit")return submitDeposit();
-  if(a==="submit-withdraw")return submitWithdraw();
-  if(a==="announcements")return announcements();
-  if(a==="chat-group"){openLink("https://t.me/+lcjigZvOfCI5MTU0");return}
-if(a==="chat-admin"){openLink("https://t.me/Elyadmin1");return}
-  if(a==="logout")return logout();
-  if(a==="admin")return adminPanel();
-  if(a==="admin-deposit")return adminDeposit(b.dataset.id,true);
-  if(a==="admin-deposit-reject")return adminDeposit(b.dataset.id,false);
-  if(a==="admin-withdrawal")return adminWithdrawal(b.dataset.id,true);
-  if(a==="admin-withdrawal-reject")return adminWithdrawal(b.dataset.id,false);
- }catch(err){console.log("Action:",err);toast("Please try again.")}
-});
+  let u=await db.getRow({
+   databaseId:DATABASE_ID,
+   tableId:USERS_TABLE_ID,
+   rowId:x.userId
+  });
+
+  let amount=Number(x.amount||0);
+
+  if(approve){
+   await db.updateRow({
+    databaseId:DATABASE_ID,
+    tableId:USERS_TABLE_ID,
+    rowId:x.userId,
+    data:{
+     totalwithdrawn:Number(u.totalwithdrawn||0)+amount
+    }
+   });
+  }else{
+   await db.updateRow({
+    databaseId:DATABASE_ID,
+    tableId:USERS_TABLE_ID,
+    rowId:x.userId,
+    data:{
+     balance:Number(u.balance||0)+amount
+    }
+   });
+  }
+
+  await db.updateRow({
+   databaseId:DATABASE_ID,
+   tableId:WITHDRAWALS_TABLE_ID,
+   rowId:id,
+   data:{
+    status:approve?"approved":"rejected",
+    processedat:iso(new Date())
+   }
+  });
+
+  toast(approve?"Withdrawal approved":"Withdrawal rejected");
+  adminPanel();
+ }catch(e){
+  console.log("Admin withdrawal:",e);
+  toast("Please try again.");
+ }
+     }
 
 async function my(){
  currentScreen="my";screen("myScreen");nav("my");renderMy();
