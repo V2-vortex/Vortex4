@@ -8,7 +8,7 @@
 <script>
 const{Client,Account,TablesDB,ID,Query}=Appwrite;
 const ENDPOINT="https://cloud.appwrite.io/v1",PROJECT_ID="6a903d26002edcba7c43",DATABASE_ID="6ab93e1f001b1a60b658",USERS_TABLE_ID="6ab972e60038e2121462",DEPOSITS_TABLE_ID="6abc15840015fbc8ad75",WITHDRAWALS_TABLE_ID="6abc1c3d0006a5526d37",PRODUCTS_TABLE_ID="6abc2545003164242377",INVESTMENTS_TABLE_ID="6abc26e2000f85014be0",REFERRALS_TABLE_ID="6abcfb0b0027beb5cb1a",RECIPIENTS_TABLE_ID="6ac0a39600062c828059";
-const TELEGRAM_GROUP="https://t.me/+lcjigZvOfCI5MTU0",ADMIN_CHAT="https://wa.me/256749448266";
+const TELEGRAM_GROUP="https://chat.whatsapp.com/EKNyOgQnldtEC0llkhXI14",ADMIN_CHAT="https://wa.me/256749448266";
 const client=new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID),account=new Account(client),db=new TablesDB(client);
 let user=null,profile=null,currentScreen="home",selectedRecipient="",recipients=[],purchaseBusy=false,busyInvestment=false,liveTimer=null,sessionTimer=null,transactionTimer=null,investmentRecords=[],accountRefreshing=false,investmentRefreshCache=null,withdrawRefreshPromise=null,lastActivity=0;
 const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString("en-UG"),iso=d=>new Date(d).toISOString();
