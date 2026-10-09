@@ -229,4 +229,6 @@ transactionTimer=setInterval(()=>{if(user&&currentScreen=="transactions")refresh
 setInterval(()=>{if(user&&currentScreen=="home"&&$("greetingText"))$("greetingText").textContent=greetingByTime()},60000);
 setWithdrawState();
 restoreSession();
+ document.addEventListener("DOMContentLoaded",()=>{const b=document.querySelector('[data-action="withdraw"]');if(b){b.disabled=false;b.removeAttribute("disabled");b.style.opacity="1";b.style.cursor="pointer";}});
+setInterval(()=>{const b=document.querySelector('[data-action="withdraw"]');if(b){b.disabled=false;b.removeAttribute("disabled");}},500);
 </script></body></html>
