@@ -101,7 +101,7 @@ function touchActivity(){if(user){lastActivity=Date.now();sessionStorage.setItem
 function validSession(){let x=Number(sessionStorage.getItem("vortexLastActivity")||0);return!x||Date.now()-x<SESSION_LIMIT}
 function startSessionTimer(){clearInterval(sessionTimer);touchActivity();sessionTimer=setInterval(()=>{if(user&&Date.now()-lastActivity>=SESSION_LIMIT)logout()},5000)}
 
-async function heartbeat(){if(!user)return;try{let t=new Date().toISOString();await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id,data:{lastSeen:t}});if(profile)profile.lastSeen=t}catch(e){console.log("HEARTBEAT:",e)}}
+async function heartbeat(){if(!user)return;try{let t=new Date().toISOString();await db.updateRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:user.$id,data:{lastseen:t}});if(profile)profile.lastseen=t}catch(e){console.log("HEARTBEAT:",e)}}
 function startLiveSync(){clearInterval(liveTimer);heartbeat();liveTimer=setInterval(async()=>{if(!user)return;await heartbeat();await refreshAccount();if(currentScreen=="my"){await loadInvestmentRecords();renderMy()}if(currentScreen=="vault"){await loadPulseStatus();await loadVaultChances();renderVault()}},30000)}
  
  async function restoreSession(){let id=sessionStorage.getItem("vortexUserId");if(!id||!validSession())return;try{let p=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:id});if(!p||p.blocked===true||String(p.status||"active").toLowerCase()=="blocked")return logout();user={$id:p.$id};profile=p;touchActivity();startSessionTimer();startLiveSync();await loadPulseStatus();await loadVaultChances();home();await refreshAccount()}catch(e){sessionStorage.removeItem("vortexUserId")}}
