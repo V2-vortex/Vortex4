@@ -109,7 +109,78 @@ function announcements(){open(`<div class="mh"><h3>Announcements</h3><button cla
 function chat(){open(`<div class="mh"><h3>Vortex</h3><button class="close" data-action="close">×</button></div><div class="modalBtns"><button class="modalBtn" data-action="chat-group">💬 Group Chat</button><button class="modalBtn" data-action="chat-admin">👤 Chat with Admin</button><button class="modalBtn" data-action="announcements">📢 Announcements</button><button class="modalBtn" data-action="help">▤ Help & Guide</button></div>`)}
 function referralLink(){return`${location.origin}${location.pathname}?ref=${encodeURIComponent(String(profile?.username||""))}`}
 async function shareReferral(){let t=`Join Vortex: ${referralLink()}`;if(navigator.share){try{await navigator.share({title:"Vortex",text:t})}catch(e){}}else copyText(t)}
-async function invite(){currentScreen="invite";screen("inviteScreen");nav("invite");let l=referralLink();$("inviteContent").innerHTML="<button class="back" data-action="back-home">← Home</button><div class="title">Invite</div><div class="card"><div class="small">Referral link</div><div style="font-size:10px;word-break:break-all;margin:8px 0">${esc(l)}</div><button class="primary" data-action="copy-ref">Copy Link</button><button class="modalBtn" style="margin-top:8px" data-action="share-ref">Share Link</button></div><div class="card"><div class="small">Referral earnings</div><div class="big">UGX ${fmt(profile?.totalreferral)}</div><div class="small">VIP ${Number(profile?.viplevel||1)}</div></div><div class="referralHeading">MY REFERRED USERS</div><div id="myReferralList" class="referralList"><div class="referralEmpty">Loading your referrals...</div></div>";try{let uid=user?.$id||profile?.$id;if(!uid)throw Error("User not found");let rows=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",uid)]);let box=$("myReferralList");if(!rows.length){box.innerHTML="<div class="referralEmpty">You haven't referred anyone yet.<br>Share your referral link to get started.</div>";return}let cards=await Promise.all(rows.map(async r=>{let rid=r.referreduserId||r.referredUserId||r.referreduserid;let joined=r.createdat||r.$createdAt;let status=String(r.status||"").toLowerCase();let active=status==="active"||status==="approved"||r.firstpurchase===true||r.firstpurchase===1;let name="Vortex User",phone="Not available";if(rid){try{let u=await db.getRow({databaseId:DATABASE_ID,tableId:USERS_TABLE_ID,rowId:rid});name=u.username||u.displayname||u.displayName||name;phone=u.phone||phone}catch(e){}}let date=joined?new Date(joined).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"Date unavailable";let masked=phone==="Not available"?phone:(typeof maskPhone==="function"?maskPhone(phone):String(phone).length>5?String(phone).slice(0,2)+"•••••"+String(phone).slice(-3):String(phone));return "<div class="referralCard"><div class="referralName">👤 ${esc(String(name))}</div><div class="referralDetail">📱 Phone: <span class="referralPhone">${esc(String(masked))}</span><br>📅 Joined: ${esc(date)}</div><span class="referralStatus ${active?"active":"pending"}">${active?"🟢 Active Referral":"🟡 Registered — No Purchase Yet"}</span></div>"}));box.innerHTML=cards.join("")}catch(e){console.error("Referral list error:",e);let box=$("myReferralList");if(box)box.innerHTML="<div class="referralEmpty">Couldn't load referrals right now. Please try again.</div>"}}
+async function invite(){
+currentScreen="invite";
+screen("inviteScreen");
+nav("invite");
+let l=referralLink();
+$("inviteContent").innerHTML=`
+<button class="back" data-action="back-home">← Home</button>
+<div class="title">Invite</div>
+<div class="card">
+<div class="small">Referral link</div>
+<div style="font-size:10px;word-break:break-all;margin:8px 0">${esc(l)}</div>
+<button class="primary" data-action="copy-ref">Copy Link</button>
+<button class="modalBtn" style="margin-top:8px" data-action="share-ref">Share Link</button>
+</div>
+<div class="card">
+<div class="small">Referral earnings</div>
+<div class="big">UGX ${fmt(profile?.totalreferral)}</div>
+<div class="small">VIP ${Number(profile?.viplevel||1)}</div>
+</div>
+<div class="referralHeading">MY REFERRED USERS</div>
+<div id="myReferralList" class="referralList">
+<div class="referralEmpty">Loading your referrals...</div>
+</div>`;
+try{
+let uid=user?.$id||profile?.$id;
+if(!uid)throw Error("User not found");
+let rows=await listRows(REFERRALS_TABLE_ID,[Query.equal("referrerId",uid)]);
+let box=$("myReferralList");
+if(!rows.length){
+box.innerHTML=`<div class="referralEmpty">You haven't referred anyone yet.<br>Share your referral link to get started.</div>`;
+return;
+}
+let cards=await Promise.all(rows.map(async r=>{
+let rid=r.referreduserId||r.referredUserId||r.referreduserid;
+let joined=r.createdat||r.$createdAt;
+let status=String(r.status||"").toLowerCase();
+let active=status==="active"||status==="approved"||r.firstpurchase===true||r.firstpurchase===1||String(r.firstpurchase).toLowerCase()==="true";
+let name="Vortex User",phone="Not available";
+if(rid){
+try{
+let u=await db.getRow({
+databaseId:DATABASE_ID,
+tableId:USERS_TABLE_ID,
+rowId:String(rid)
+});
+name=u.username||u.displayname||u.displayName||name;
+phone=u.phone||phone;
+}catch(e){}
+}
+let date=joined&&!isNaN(new Date(joined).getTime())
+?new Date(joined).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})
+:"Date unavailable";
+let masked=phone==="Not available"
+?phone
+:maskPhone(phone);
+return `
+<div class="referralCard">
+<div class="referralName">👤 ${esc(name)}</div>
+<div class="referralDetail">
+📱 Phone: <span class="referralPhone">${esc(masked)}</span><br>
+📅 Joined: ${esc(date)}
+</div>
+<span class="referralStatus ${active?"active":"pending"}">${active?"🟢 Active Referral":"🟡 Registered — No Purchase Yet"}</span>
+</div>`;
+}));
+box.innerHTML=cards.join("");
+}catch(e){
+console.error("Referral list error:",e);
+let box=$("myReferralList");
+if(box)box.innerHTML=`<div class="referralEmpty">Couldn't load referrals right now. Please try again.</div>`;
+}
+ }
  function helpPage(){close();currentScreen="help";screen("helpScreen");nav("home");$("helpContent").innerHTML=`<button class="back" data-action="back-home">← Home</button><div class="guideHead"><span>VORTEX</span><b>Help & Guide</b></div><div class="helpList"><details class="helpItem" open><summary>Welcome</summary><div class="helpBody"><p>Welcome to Vortex. Enjoy Your Ride.</p></div></details><details class="helpItem"><summary>How to Deposit</summary><div class="helpBody"><ol><li>Open Deposit.</li><li>Use the displayed recipient.</li><li>Send your amount.</li><li>Enter amount, phone and transaction ID.</li><li>Submit.</li></ol></div></details><details class="helpItem"><summary>How to Withdraw</summary><div class="helpBody"><ol><li>Withdrawals are available from 8:00 AM to 6:00 PM Uganda time.</li><li>Enter an amount between UGX 5,000 and UGX 5,000,000 per request.</li><li>Enter your valid mobile money phone number and submit.</li><li>There is no daily limit on the number of requests.</li><li>Allow 30 minutes for processing. Actual payment depends on admin processing.</li><li>Applicable service tax depends on your VIP level.</li></ol></div></details><details class="helpItem"><summary>How to Invite</summary><div class="helpBody"><ol><li>Open Invite.</li><li>Copy or share your referral link.</li><li>Referrals are tracked automatically.</li><li>Check My Account for referral records and progress when available.</li></ol></div></details><details class="helpItem"><summary>VIP Levels</summary><div class="helpBody"><div class="vipTable"><table><tr><th>VIP</th><th>Active</th><th>Time</th><th>Tax</th><th>Referral</th></tr>${VIP_LEVELS.map(v=>`<tr><td>${v.level}</td><td>${v.active}</td><td>${v.minutes}m</td><td>${v.tax}%</td><td>${v.ref}%</td></tr>`).join("")}</table></div><p>VIP progress depends on your qualifying active referrals. Service tax and referral commission rates depend on your VIP level.</p></div></details><details class="helpItem"><summary>Daily</summary><div class="helpBody"><p>Daily product credits follow the product terms displayed in the app.</p></div></details><details class="helpItem"><summary>Time</summary><div class="helpBody"><p>Time product returns follow the maturity period and terms displayed in the app.</p></div></details><details class="helpItem"><summary>Vault</summary><div class="helpBody"><p>Vortex Reveal gives a chance after purchasing a qualifying Time product. Choose one of six cards to reveal the assigned reward.</p><p><b>Vortex Pulse:</b> Available when activated by admin.</p></div></details><details class="helpItem"><summary>Security</summary><div class="helpBody"><p>Keep your password and transaction details private. Never share your password with anyone.</p></div></details></div>`}
  
  function txTime(x){let t=new Date(x?.createdat||x?.$createdAt||0).getTime();return Number.isFinite(t)?t:0}
