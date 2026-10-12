@@ -88,8 +88,144 @@ function addWorkingDays(start,count){const d=new Date(start);let n=0;while(n<cou
 function businessDaysPassed(start,now){const a=new Date(start),b=new Date(now);let n=0;a.setHours(0,0,0,0);b.setHours(0,0,0,0);while(a<b){a.setDate(a.getDate()+1);if(a.getDay()!==0&&a.getDay()!==6)n++}return n}
 function activeReferralCount(){return state.referrals.filter(r=>r.firstpurchase===true||['active','purchased','qualified'].includes(String(r.status||'').toLowerCase())).length}
 function levelFor(count){let v=VIP[0];for(const x of VIP)if(count>=x.active)v=x;return v}
-async function purchase(id){const p=state.products.find(x=>x.$id===id&&x.active===true);if(!p)return toast('This product is no longer available. Refresh your account and try again.');const amount=Number(p.amount);if(!Number.isSafeInteger(amount)||amount<=0)return toast('This product has an invalid price. Contact admin.');modal('Confirm purchase',`<p><b>${esc(p.name)}</b></p><p>Purchase price: <b>${fmt(amount)}</b></p><p>Wallet available: <b>${fmt(profile.wallet)}</b></p><p>Credits/return: <b>${fmt(p.dailycredit||p.returnamount||0)}</b></p>`,'Purchase',async()=>{const fresh=await getUserRow(rowId(profile));profile=fresh;syncProfile();if(Number(profile.wallet)<amount)throw Error('Insufficient wallet balance. Deposit and wait for admin approval before purchasing.');const now=new Date(),category=String(p.category||'').toLowerCase(),duration=Number(p.duration)||0;if(!['daily','time'].includes(category))throw Error('Product category must be Daily or Time.');const end=category==='time'?addWorkingDays(now,duration):new Date(now.getTime()+duration*86400000),investmentId=Appwrite.ID.unique();const previousWallet=Number(profile.wallet)||0;await updateUser({wallet:previousWallet-amount});try{await db.createRow({databaseId:CFG.databaseId,tableId:CFG.investments,rowId:investmentId,data:{userId:userKey(),username:String(profile.username||''),productId:String(p.$id),productname:String(p.name||''),category,amount,dailycredit:Number(p.dailycredit)||0,returnamount:Number(p.returnamount)||0,duration,startat:now.toISOString(),endat:end.toISOString(),lastcreditat:now.toISOString(),creditedamount:0,status:'active',createdat:now.toISOString(),purchaseId:investmentId}})}catch(err){try{await updateUser({wallet:previousWallet})}catch(rollback){console.error('Wallet rollback failed',rollback)}throw Error('Purchase record could not be saved. Wallet restoration was attempted; refresh before retrying. '+(err.message||''))}await applyReferralBonus(amount);await loadData();openPage('my');toast('Purchase successful. Wallet deducted and product saved.')})}
-async function applyReferralBonus(amount){try{const referred=await list(CFG.referrals,[eq('referreduserId',userKey())]);const referral=referred.find(r=>r.firstpurchase!==true&&!r.bonuspaid);if(!referral)return;const referrerId=String(referral.referrerId||'');if(!referrerId)return;const refUser=await getUserRow(referrerId),lv=VIP.find(v=>v.level===(Number(refUser.viplevel)||1))||VIP[0],bonus=Math.round(amount*lv.ref/100);const rid=rowId(referral);if(!rid)return;await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.referrals,rowId:rid,data:{firstpurchase:true,firstpurchaseamount:amount,bonusPercent:lv.ref,bonusamount:bonus,bonuspaid:true,status:'active',activatedat:new Date().toISOString()}});if(bonus>0)await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(refUser),data:{balance:(Number(refUser.balance)||0)+bonus,totalearned:(Number(refUser.totalearned)||0)+bonus}})}catch(e){console.warn('Referral bonus could not be applied; admin should review referral record.',e)}}
+async function purchase(id) {
+  const p = state.products.find(x => String(x.$id) === String(id));
+
+  if (!p) {
+    return toast('This product is no longer available. Refresh your account and try again.');
+  }
+
+  const active =
+    p.active === true ||
+    p.active === 1 ||
+    String(p.active).trim().toLowerCase() === 'true';
+
+  if (!active) {
+    return toast('This product is currently inactive.');
+  }
+
+  const amount = Number(p.amount);
+
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
+    return toast('This product has an invalid price. Contact admin.');
+  }
+
+  // Normalize category values such as "Daily product" and "Time plan".
+  const rawCategory = String(p.category || '').trim().toLowerCase();
+  let category = '';
+
+  if (rawCategory === 'daily' || rawCategory.includes('daily')) {
+    category = 'daily';
+  } else if (rawCategory === 'time' || rawCategory.includes('time')) {
+    category = 'time';
+  }
+
+  if (!category) {
+    console.error('Invalid product category:', {
+      id: p.$id,
+      name: p.name,
+      category: p.category
+    });
+    return toast('Product category is invalid. Check this product’s category in the product data.');
+  }
+
+  const duration = Number(p.duration);
+
+  if (!Number.isSafeInteger(duration) || duration <= 0) {
+    return toast('This product has an invalid duration. Contact admin.');
+  }
+
+  modal(
+    'Confirm purchase',
+    `<p><b>${esc(p.name || 'Product')}</b></p>
+     <p>Purchase price: <b>${fmt(amount)}</b></p>
+     <p>Wallet available: <b>${fmt(profile.wallet)}</b></p>
+     <p>Product type: <b>${category.toUpperCase()}</b></p>
+     <p>Credits/return: <b>${fmt(Number(p.dailycredit) || Number(p.returnamount) || 0)}</b></p>`,
+    'Purchase',
+    async () => {
+      const fresh = await getUserRow(rowId(profile));
+      profile = fresh;
+      syncProfile();
+
+      const previousWallet = Number(profile.wallet) || 0;
+
+      if (previousWallet < amount) {
+        throw Error(
+          'Insufficient wallet balance. Deposit and wait for admin approval before purchasing.'
+        );
+      }
+
+      const now = new Date();
+
+      const end = category === 'time'
+        ? addWorkingDays(now, duration)
+        : new Date(now.getTime() + duration * 86400000);
+
+      const investmentId = Appwrite.ID.unique();
+
+      // Deduct the purchase price from the wallet.
+      await updateUser({
+        wallet: previousWallet - amount
+      });
+
+      try {
+        await db.createRow({
+          databaseId: CFG.databaseId,
+          tableId: CFG.investments,
+          rowId: investmentId,
+          data: {
+            userId: userKey(),
+            username: String(profile.username || ''),
+            productId: String(p.$id),
+            productname: String(p.name || 'Product'),
+            category: category,
+            amount: amount,
+            dailycredit: Number(p.dailycredit) || 0,
+            returnamount: Number(p.returnamount) || 0,
+            duration: duration,
+            startat: now.toISOString(),
+            endat: end.toISOString(),
+            lastcreditat: now.toISOString(),
+            creditedamount: 0,
+            status: 'active',
+            createdat: now.toISOString(),
+            purchaseId: investmentId
+          }
+        });
+      } catch (err) {
+        console.error('Investment record creation failed:', err);
+
+        try {
+          await updateUser({
+            wallet: previousWallet
+          });
+        } catch (rollbackError) {
+          console.error('Wallet rollback failed:', rollbackError);
+          throw Error(
+            'Purchase record failed and wallet restoration could not be confirmed. Refresh your account and contact admin before retrying.'
+          );
+        }
+
+        throw Error(
+          'Purchase record could not be saved. Your wallet restoration was attempted. ' +
+          (err.message || 'Please refresh and try again.')
+        );
+      }
+
+      try {
+        await applyReferralBonus(amount);
+      } catch (referralError) {
+        console.error('Referral bonus processing failed:', referralError);
+      }
+
+      await loadData();
+      openPage('my');
+      toast('Purchase successful. Wallet deducted and product saved.');
+    }
+  );
+            }
+      async function applyReferralBonus(amount){try{const referred=await list(CFG.referrals,[eq('referreduserId',userKey())]);const referral=referred.find(r=>r.firstpurchase!==true&&!r.bonuspaid);if(!referral)return;const referrerId=String(referral.referrerId||'');if(!referrerId)return;const refUser=await getUserRow(referrerId),lv=VIP.find(v=>v.level===(Number(refUser.viplevel)||1))||VIP[0],bonus=Math.round(amount*lv.ref/100);const rid=rowId(referral);if(!rid)return;await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.referrals,rowId:rid,data:{firstpurchase:true,firstpurchaseamount:amount,bonusPercent:lv.ref,bonusamount:bonus,bonuspaid:true,status:'active',activatedat:new Date().toISOString()}});if(bonus>0)await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(refUser),data:{balance:(Number(refUser.balance)||0)+bonus,totalearned:(Number(refUser.totalearned)||0)+bonus}})}catch(e){console.warn('Referral bonus could not be applied; admin should review referral record.',e)}}
 async function processDailyCredits(){if(rewardBusy||!profile)return;rewardBusy=true;try{const rows=state.investments.filter(p=>String(p.category).toLowerCase()==='daily'&&String(p.status).toLowerCase()==='active');const updates=[];let total=0;for(const p of rows){const start=new Date(p.startat||p.createdat),duration=Math.max(0,Number(p.duration)||0),daily=Number(p.dailycredit)||0;if(!Number.isFinite(start.getTime())||daily<=0||duration<=0)continue;const elapsed=Math.max(0,Math.floor((new Date(dateKey())-new Date(dateKey(start)))/86400000)+1),due=Math.min(duration,elapsed),already=Math.min(duration,Math.floor((Number(p.creditedamount)||0)/daily)),owed=Math.max(0,due-already),credit=owed*daily;if(credit>0){updates.push({row:p,newCredit:(Number(p.creditedamount)||0)+credit,newStatus:already+owed>=duration?'completed':'active',credit});total+=credit}}if(!total)return;const original=Number(profile.balance)||0,earned=Number(profile.totalearned)||0,done=[];try{for(const u of updates){await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.investments,rowId:rowId(u.row),data:{lastcreditat:new Date().toISOString(),creditedamount:u.newCredit,status:u.newStatus}});done.push(u)}await updateUser({balance:original+total,totalearned:earned+total})}catch(e){for(const u of done){try{await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.investments,rowId:rowId(u.row),data:{lastcreditat:u.row.lastcreditat||u.row.startat,creditedamount:Number(u.row.creditedamount)||0,status:u.row.status||'active'}})}catch(re){console.error('Credit rollback failed',re)}}throw e}toast('Missed daily credits reconciled: '+fmt(total))}catch(e){console.error('Daily credit processing failed',e);toast('Some credits could not be reconciled. Please refresh or contact admin.')}finally{rewardBusy=false}}
 async function processMatureTimeProducts(){if(!profile)return;const rows=state.investments.filter(p=>String(p.category).toLowerCase()==='time'&&String(p.status).toLowerCase()==='active');let total=0;const done=[];for(const p of rows){const start=new Date(p.startat||p.createdat),duration=Math.max(0,Number(p.duration)||0);if(!Number.isFinite(start.getTime())||!duration||businessDaysPassed(start,new Date())<duration||Number(p.creditedamount)>0)continue;const payout=Number(p.returnamount)||0;if(payout<=0)continue;await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.investments,rowId:rowId(p),data:{creditedamount:payout,status:'completed',lastcreditat:new Date().toISOString()}});done.push({row:p,payout});total+=payout}if(total){try{await updateUser({balance:(Number(profile.balance)||0)+total,totalearned:(Number(profile.totalearned)||0)+total});toast('Matured product returns credited: '+fmt(total))}catch(e){for(const d of done){try{await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.investments,rowId:rowId(d.row),data:{creditedamount:Number(d.row.creditedamount)||0,status:d.row.status||'active',lastcreditat:d.row.lastcreditat||d.row.startat}})}catch(re){console.error('Maturity rollback failed',re)}}throw e}}}
 async function assignRecipient(){const rows=(await list(CFG.recipients,[eq('active',true)])).filter(r=>r.active===true&&validValue(r.phone));if(!rows.length)throw Error('No active payment recipients are configured in the admin panel.');state.recipients=rows;state.recipient=rows[Math.floor(Math.random()*rows.length)];$('recipientNumber').textContent=String(state.recipient.phone);$('recipientName').textContent=String(state.recipient.name||'Mobile Money recipient');return state.recipient}
