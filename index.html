@@ -39,10 +39,11 @@ function openPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.r
 function modal(title,body,label,fn){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modalConfirm').textContent=label||'Confirm';modal.action=fn;$('modalBack').classList.add('show')}function closeModal(){$('modalBack').classList.remove('show');modal.action=null}
 $('modalConfirm').addEventListener('click',async()=>{const f=modal.action;closeModal();if(f)try{await f()}catch(e){console.error(e);toast(e.message||'Request failed. Please try again.')}});
 
-function renderProducts(){
+function renderProducts() {
   const defs = state.products.filter(p => {
     const category = String(p.category || '').trim().toLowerCase();
-    const active = p.active === true ||
+    const active =
+      p.active === true ||
       p.active === 1 ||
       String(p.active).trim().toLowerCase() === 'true';
 
@@ -52,33 +53,53 @@ function renderProducts(){
   $('productCount').textContent = defs.length + ' plans';
 
   $('productGrid').innerHTML = defs.length
-    ? defs.map(p => `
-      <article class="product">
-        <div class="product-art">
-          <div class="product-tag">${esc(String(p.category).toUpperCase())} PLAN</div>
-          <b>${esc(p.name || 'Product')}</b>
-        </div>
-        <div class="product-body">
-          <div class="product-price">${fmt(p.amount)}</div>
-          <div class="product-return">${
-            Number(p.dailycredit) > 0
-              ? fmt(p.dailycredit) + ' daily credit'
-              : fmt(p.returnamount) + ' total return'
-          }</div>
-          <div class="product-meta">
-            ${Number(p.duration) || 0}
-            ${String(p.category).toLowerCase() === 'daily'
-              ? 'calendar days'
-              : 'working days'}
-          </div>
-          <button class="buy" data-id="${esc(p.$id)}">Purchase</button>
-        </div>
-      </article>
-    `).join('')
+    ? defs.map(p => {
+        const category = String(p.category || '').trim().toLowerCase();
+        const isTime = category.includes('time');
+
+        const returnLabel = isTime
+          ? 'Maturity Return'
+          : 'Daily Credit';
+
+        const returnValue = isTime
+          ? Number(p.returnamount) || 0
+          : Number(p.dailycredit) || 0;
+
+        const duration = Number(p.duration) || 0;
+
+        return `
+          <article class="product">
+            <div class="product-art">
+              <div class="product-tag">
+                ${esc(category.toUpperCase())} PLAN
+              </div>
+              <b>${esc(p.name || 'Product')}</b>
+            </div>
+
+            <div class="product-body">
+              <div class="product-price">
+                ${fmt(Number(p.amount) || 0)}
+              </div>
+
+              <div class="product-return">
+                ${returnLabel}: ${fmt(returnValue)}
+              </div>
+
+              <div class="product-meta">
+                ${duration} days
+              </div>
+
+              <button class="buy" data-id="${esc(p.$id)}">
+                Purchase
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('')
     : '<div class="empty" style="grid-column:1/-1">No active products are currently available.</div>';
 
-  document.querySelectorAll('.buy').forEach(b => {
-    b.onclick = () => purchase(b.dataset.id);
+  document.querySelectorAll('.buy').forEach(button => {
+    button.onclick = () => purchase(button.dataset.id);
   });
 }
       
