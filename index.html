@@ -38,8 +38,51 @@ $('greetName').textContent='Hello, '+name;$('greetTime').textContent=hour<12?'GO
 function openPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p+'Page')?.classList.add('active');document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===p));if(document.querySelector('.socials'))document.querySelector('.socials').style.display=p==='home'?'flex':'none';window.scrollTo({top:0,behavior:'smooth'});if(p==='invite')renderInvite();if(p==='my')renderMy();if(p==='withdraw')renderWithdraw();if(p==='deposit'&&profile&&!state.recipient)assignRecipient().catch(e=>toast(e.message||'Unable to load recipient.'))}
 function modal(title,body,label,fn){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modalConfirm').textContent=label||'Confirm';modal.action=fn;$('modalBack').classList.add('show')}function closeModal(){$('modalBack').classList.remove('show');modal.action=null}
 $('modalConfirm').addEventListener('click',async()=>{const f=modal.action;closeModal();if(f)try{await f()}catch(e){console.error(e);toast(e.message||'Request failed. Please try again.')}});
-function renderProducts(){const defs=state.products.filter(p=>String(p.category||'').toLowerCase()===state.type&&p.active===true);$('productCount').textContent=defs.length+' plans';$('productGrid').innerHTML=defs.length?defs.map(p=>`<article class="product"><div class="product-art"><div class="product-tag">${esc(String(p.category).toUpperCase())} PLAN</div><b>${esc(p.name||'Product')}</b></div><div class="product-body"><div class="product-price">${fmt(p.amount)}</div><div class="product-return">${p.dailycredit?fmt(p.dailycredit)+' daily credit':fmt(p.returnamount)+' total return'}</div><div class="product-meta">${Number(p.duration)||0} ${String(p.category).toLowerCase()==='daily'?'calendar days':'working days'}</div><button class="buy" data-id="${esc(p.$id)}">Purchase</button></div></article>`).join(''):'<div class="empty" style="grid-column:1/-1">No active products are currently available.</div>';document.querySelectorAll('.buy').forEach(b=>b.onclick=()=>purchase(b.dataset.id))}
-function setProductType(t){state.type=String(t).toLowerCase()==='time'?'time':'daily';$('dailyTab').classList.toggle('active',state.type==='daily');$('timeTab').classList.toggle('active',state.type==='time');renderProducts()}
+
+function renderProducts(){
+  const defs = state.products.filter(p => {
+    const category = String(p.category || '').trim().toLowerCase();
+    const active = p.active === true ||
+      p.active === 1 ||
+      String(p.active).trim().toLowerCase() === 'true';
+
+    return category === state.type && active;
+  });
+
+  $('productCount').textContent = defs.length + ' plans';
+
+  $('productGrid').innerHTML = defs.length
+    ? defs.map(p => `
+      <article class="product">
+        <div class="product-art">
+          <div class="product-tag">${esc(String(p.category).toUpperCase())} PLAN</div>
+          <b>${esc(p.name || 'Product')}</b>
+        </div>
+        <div class="product-body">
+          <div class="product-price">${fmt(p.amount)}</div>
+          <div class="product-return">${
+            Number(p.dailycredit) > 0
+              ? fmt(p.dailycredit) + ' daily credit'
+              : fmt(p.returnamount) + ' total return'
+          }</div>
+          <div class="product-meta">
+            ${Number(p.duration) || 0}
+            ${String(p.category).toLowerCase() === 'daily'
+              ? 'calendar days'
+              : 'working days'}
+          </div>
+          <button class="buy" data-id="${esc(p.$id)}">Purchase</button>
+        </div>
+      </article>
+    `).join('')
+    : '<div class="empty" style="grid-column:1/-1">No active products are currently available.</div>';
+
+  document.querySelectorAll('.buy').forEach(b => {
+    b.onclick = () => purchase(b.dataset.id);
+  });
+}
+      
+      function setProductType(t){state.type=String(t).toLowerCase()==='time'?'time':'daily';$('dailyTab').classList.toggle('active',state.type==='daily');$('timeTab').classList.toggle('active',state.type==='time');renderProducts()}
 function dateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function addWorkingDays(start,count){const d=new Date(start);let n=0;while(n<count){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)n++}return d}
 function businessDaysPassed(start,now){const a=new Date(start),b=new Date(now);let n=0;a.setHours(0,0,0,0);b.setHours(0,0,0,0);while(a<b){a.setDate(a.getDate()+1);if(a.getDay()!==0&&a.getDay()!==6)n++}return n}
