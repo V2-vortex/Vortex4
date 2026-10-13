@@ -253,32 +253,50 @@ async function assignRecipient(){const rows=(await list(CFG.recipients,[eq('acti
 function copyText(t){if(!t||t==='—')return;const f=navigator.clipboard?.writeText(String(t));if(f)f.then(()=>toast('Copied')).catch(()=>fallback(t));else fallback(t)}function fallback(t){const a=document.createElement('textarea');a.value=String(t);document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();toast('Copied')}
 function renderRows(id,rows,cols,empty){$(id).innerHTML=rows.length?rows.map(r=>'<tr>'+cols.map(c=>{let v=r[c]??'—';if(c==='amount'||c==='creditedamount'||c==='dailycredit')v=fmt(v);if(c==='status')return `<td><span class="status ${esc(String(v).toLowerCase())}">${esc(v)}</span></td>`;return `<td>${esc(v)}</td>`}).join('')+'</tr>').join(''):`<tr><td colspan="${cols.length}" class="muted">${esc(empty)}</td></tr>`}
 function renderHistory(id,rows,type){$(id).innerHTML=rows.length?'<div class="tablewrap"><table><thead><tr><th>Amount</th><th>Details</th><th>Date</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${fmt(r.amount)}</td><td>${esc(type==='deposit'?(r.transactionId||r.recepient||'—'):(r.paymentphone||r.transactionId||'—'))}</td><td>${esc(String(r.createdat||r.$createdAt||'—').slice(0,10))}</td><td><span class="status ${esc(String(r.status||'pending').toLowerCase())}">${esc(r.status||'pending')}</span></td></tr>`).join('')+'</tbody></table></div>':'No records yet.'}
+
 async function processApprovedRequests(){
-  // Admin decisions are applied from the existing status field; credited/processed prevent repeat handling.
-  for(const d of state.deposits){
-    if(String(d.status||'').toLowerCase()!=='approved')continue;
-    const did=rowId(d);if(!did)continue;
-    const before=String(d.status);
-    try{
-      await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.deposits,rowId:did,data:{status:'credited'}});
-      try{await updateUser({wallet:(Number(profile.wallet)||0)+(Number(d.amount)||0),totaldeposited:(Number(profile.totaldeposited)||0)+(Number(d.amount)||0)});}
-      catch(err){try{await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.deposits,rowId:did,data:{status:before}})}catch(rollback){console.error('Deposit status rollback failed',rollback)}throw err}
-      toast('Approved deposit credited: '+fmt(d.amount));
-    }catch(e){console.error('Approved deposit could not be applied',e);throw Error('An approved deposit could not be credited. Refresh or contact admin before resubmitting.')}
-  }
+  // Deposits are credited ONLY by the admin panel.
+  // The frontend must never credit approved deposits again.
+  // Do not change deposit statuses here.
+
   for(const w of state.withdrawals){
     if(String(w.status||'').toLowerCase()!=='approved')continue;
-    const wid=rowId(w);if(!wid)continue;
+
+    const wid=rowId(w);
+    if(!wid)continue;
+
     const amount=Number(w.amount)||0;
     if(amount<=0)continue;
-    if((Number(profile.balance)||0)<amount){console.warn('Approved withdrawal exceeds current balance',wid);continue}
+
+    if((Number(profile.balance)||0)<amount){
+      console.warn('Approved withdrawal exceeds current balance',wid);
+      continue;
+    }
+
     try{
-      await updateUser({balance:(Number(profile.balance)||0)-amount,totalwithdrawn:(Number(profile.totalwithdrawn)||0)+amount});
-      await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.withdrawals,rowId:wid,data:{status:'processed',processedat:new Date().toISOString()}});
+      await updateUser({
+        balance:(Number(profile.balance)||0)-amount,
+        totalwithdrawn:(Number(profile.totalwithdrawn)||0)+amount
+      });
+
+      await db.updateRow({
+        databaseId:CFG.databaseId,
+        tableId:CFG.withdrawals,
+        rowId:wid,
+        data:{
+          status:'processed',
+          processedat:new Date().toISOString()
+        }
+      });
+
       toast('Approved withdrawal applied: '+fmt(amount));
-    }catch(e){console.error('Approved withdrawal could not be applied',e);throw Error('An approved withdrawal could not be applied. Please refresh and check with admin.')}
+    }catch(e){
+      console.error('Approved withdrawal could not be applied',e);
+      throw Error('An approved withdrawal could not be applied. Please refresh and check with admin.');
+    }
   }
-}
+                                                                                                                       }
+                                                                                                                                                                                                                                                                                                                                                   
 async function loadReferredUsers(){const ids=[...new Set(state.referrals.map(r=>String(r.referreduserId||'')).filter(Boolean))];state.referredUsers=(await Promise.all(ids.map(async id=>{try{return await getUserRow(id)}catch(_){try{const rows=await list(CFG.users,[eq('userId',id)]);return rows[0]||null}catch(__){return null}}}))).filter(Boolean)}
 async function loadData(){if(!profile||!rowId(profile))throw Error('Signed-in account row ID is missing.');const uid=userKey();if(!uid)throw Error('Account userId is missing; account data was not queried.');const results=await Promise.all([list(CFG.products,[eq('active',true)]),list(CFG.investments,[eq('userId',uid)]),list(CFG.deposits,[eq('userId',uid)]),list(CFG.withdrawals,[eq('userId',uid)]),list(CFG.referrals,[eq('referrerId',uid)]),list(CFG.recipients,[eq('active',true)])]);[state.products,state.investments,state.deposits,state.withdrawals,state.referrals,state.recipients]=results;state.investments.sort((a,b)=>new Date(b.createdat||b.startat)-new Date(a.createdat||a.startat));state.deposits.sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt));state.withdrawals.sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt));await loadReferredUsers();const vip=levelFor(activeReferralCount()).level;if(Number(profile.viplevel||1)!==vip){try{profile=await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(profile),data:{viplevel:vip}})}catch(e){console.warn('VIP level could not be saved',e)}}state.refEarned=state.referrals.filter(r=>r.bonuspaid===true).reduce((n,r)=>n+(Number(r.bonusamount)||0),0);renderProducts();$('activeCount').textContent=state.investments.filter(p=>String(p.status).toLowerCase()==='active').length;renderHistory('depositHistory',state.deposits,'deposit');renderHistory('withdrawHistory',state.withdrawals,'withdrawal');syncProfile()}
 
