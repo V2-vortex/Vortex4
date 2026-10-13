@@ -312,8 +312,48 @@ $('depositForm').addEventListener('submit',async e=>{e.preventDefault();try{cons
 
 $('withdrawForm').addEventListener('submit',e=>{e.preventDefault();const amount=Number($('withAmount').value),phone=$('withPhone').value.trim(),now=new Date(),parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Kampala',hour:'2-digit',hourCycle:'h23'}).formatToParts(now),hour=Number(parts.find(p=>p.type==='hour')?.value);if(hour<8||hour>=22)return toast('Withdrawals are available from 8:00 AM to 10:00 PM Uganda time.');if(!Number.isSafeInteger(amount)||amount<10000||amount>5000000)return toast('Enter an amount from UGX 10,000 to UGX 5,000,000.');if(!phoneOK(phone))return toast('Enter a valid 07XXXXXXXX phone number.');const pending=state.withdrawals.filter(r=>String(r.status||'').toLowerCase()==='pending').reduce((n,r)=>n+(Number(r.amount)||0),0);if(amount+pending>Number(profile.balance||0))return toast('Available balance after pending withdrawals is not enough.');const lv=VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0],tax=Math.round(amount*lv.tax/100);modal('Confirm withdrawal',`<p>Amount requested: <b>${fmt(amount)}</b></p><p>Estimated tax (${lv.tax}%): <b>${fmt(tax)}</b></p><p>Estimated payout: <b>${fmt(amount-tax)}</b></p><p>Number: <b>${esc(phone)}</b></p><p>Admin review is required. Your balance is not changed until the request is processed.</p>`,'Submit',async()=>{await save(CFG.withdrawals,{userId:userKey(),username:String(profile.username||''),phone:String(profile.phone||''),amount,paymentphone:phone,status:'pending',createdat:new Date().toISOString(),processedat:'',transactionId:'',note:'',withdrawdate:dateKey(),level:Number(profile.viplevel)||1,tax:lv.tax,processingminutes:0,taxamount:tax,netamount:amount-tax});$('withdrawForm').reset();await loadData();openPage('my');toast('Withdrawal request submitted for admin review.')})});
       function renderWithdraw(){if(!profile)return;syncProfile();const a=Number($('withAmount').value)||0,lv=VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0],tax=Math.round(a*lv.tax/100);$('taxRate').textContent=lv.tax+'%';$('taxEstimate').textContent=fmt(tax);$('netEstimate').textContent='Net '+fmt(Math.max(0,a-tax))}$('withAmount').addEventListener('input',renderWithdraw);
-function renderInvite(){const link=location.href.split('?')[0]+'?ref='+encodeURIComponent(profile?.referralcode||state.username);$('refLink').value=link;$('refCount').textContent=state.referrals.length;$('refTotal').textContent=fmt(state.refEarned);const users=new Map(state.referredUsers.map(u=>[String(u.userId||u.$id),u]));$('refRows').innerHTML=state.referrals.length?state.referrals.map(r=>{const u=users.get(String(r.referreduserId||''));return `<tr><td>${esc(u?.username||r.referredusername||'—')}</td><td>${esc(u?.phone||'—')}</td><td>${esc(String(u?.createdat||r.createdat||'—').slice(0,10))}</td><td><span class="status ${esc(String(u?.status||r.status||'registered').toLowerCase())}">${esc(u?.status||r.status||'registered')}</span></td></tr>`}).join(''):'<tr><td colspan="4" class="muted">No referrals yet.</td></tr>';$('vipRows').innerHTML=VIP.map(v=>`<tr><td>VIP ${v.level}</td><td>${v.active}+</td><td>${v.ref}%</td><td>${v.tax}%</td></tr>`).join('');$('refRate').textContent=(VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0]).ref+'% referral rate'}function shareReferral(){const url=$('refLink').value;if(navigator.share)navigator.share({title:'Join Vortex',url}).catch(()=>{});else copyText(url)}
-function renderMy(){if(!profile)return;syncProfile();renderRows('runningRows',state.investments.map(p=>({productname:p.productname||'Product',category:String(p.category||'').toUpperCase(),amount:p.amount,startat:String(p.startat||p.createdat||'—').slice(0,10),endat:String(p.endat||'—').slice(0,10),dailycredit:p.dailycredit||0,creditedamount:p.creditedamount||0,status:p.status||'active'})),['productname','category','amount','startat','endat','dailycredit','creditedamount','status'],'No products purchased yet.');const tx=[...state.deposits.map(x=>({type:'Deposit',amount:x.amount,date:x.createdat||x.$createdAt,status:x.status})),...state.withdrawals.map(x=>({type:'Withdrawal',amount:x.amount,date:x.createdat||x.$createdAt,status:x.status})),...state.investments.map(x=>({type:'Purchase · '+(x.productname||'Product'),amount:x.amount,date:x.createdat||x.startat,status:'successful'}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(x=>({...x,date:x.date?String(x.date).slice(0,10):'—'}));renderRows('myTransactions',tx,['type','amount','date','status'],'No transactions yet.')}
+
+function renderInvite(){
+  const link=location.href.split('?')[0]+'?ref='+encodeURIComponent(profile?.referralcode||state.username);
+  $('refLink').value=link;
+  $('refCount').textContent=state.referrals.length;
+  $('refTotal').textContent=fmt(state.refEarned);
+
+  const users=new Map(
+    state.referredUsers.map(u=>[String(u.userId||u.$id),u])
+  );
+
+  $('refRows').innerHTML=state.referrals.length
+    ?state.referrals.map(r=>{
+      const u=users.get(String(r.referreduserId||''));
+
+      // A referral is activated only after their first successful purchase.
+      const activated=
+        r.firstpurchase===true ||
+        Number(r.firstpurchaseamount)>0;
+
+      const status=activated?'Activated':'Registered';
+      const statusClass=activated?'active':'registered';
+
+      return `<tr>
+        <td>${esc(u?.username||r.referredusername||'—')}</td>
+        <td>${esc(u?.phone||'—')}</td>
+        <td>${esc(String(u?.createdat||r.createdat||'—').slice(0,10))}</td>
+        <td><span class="status ${statusClass}">${status}</span></td>
+      </tr>`;
+    }).join('')
+    :'<tr><td colspan="4" class="muted">No referrals yet.</td></tr>';
+
+  $('vipRows').innerHTML=VIP.map(v=>
+    `<tr><td>VIP ${v.level}</td><td>${v.active}+</td><td>${v.ref}%</td><td>${v.tax}%</td></tr>`
+  ).join('');
+
+  $('refRate').textContent=
+    (VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0]).ref+
+    '% referral rate';
+        }
+    
+      function renderMy(){if(!profile)return;syncProfile();renderRows('runningRows',state.investments.map(p=>({productname:p.productname||'Product',category:String(p.category||'').toUpperCase(),amount:p.amount,startat:String(p.startat||p.createdat||'—').slice(0,10),endat:String(p.endat||'—').slice(0,10),dailycredit:p.dailycredit||0,creditedamount:p.creditedamount||0,status:p.status||'active'})),['productname','category','amount','startat','endat','dailycredit','creditedamount','status'],'No products purchased yet.');const tx=[...state.deposits.map(x=>({type:'Deposit',amount:x.amount,date:x.createdat||x.$createdAt,status:x.status})),...state.withdrawals.map(x=>({type:'Withdrawal',amount:x.amount,date:x.createdat||x.$createdAt,status:x.status})),...state.investments.map(x=>({type:'Purchase · '+(x.productname||'Product'),amount:x.amount,date:x.createdat||x.startat,status:'successful'}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(x=>({...x,date:x.date?String(x.date).slice(0,10):'—'}));renderRows('myTransactions',tx,['type','amount','date','status'],'No transactions yet.')}
 async function refreshAccount(){if(refreshBusy||!profile)return;refreshBusy=true;try{profile=await getUserRow(rowId(profile));await loadData();await processApprovedRequests();await loadData();await processDailyCredits();await processMatureTimeProducts();profile=await getUserRow(rowId(profile));await loadData();renderMy();renderWithdraw();toast('Your account is up to date.')}catch(e){console.error(e);toast(e.message||'Unable to refresh account.')}finally{refreshBusy=false}}
 async function heartbeatUpdate(){try{if(profile&&rowId(profile))await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(profile),data:{lastseen:new Date().toISOString()}})}catch(e){console.warn('Online tracker update failed',e.message)}}function startTracker(){if(heartbeat)clearInterval(heartbeat);heartbeatUpdate();heartbeat=setInterval(heartbeatUpdate,30000)}
 async function openUserAccount(p){if(!p||!rowId(p))throw Error('Account record is missing its Appwrite row ID.');profile=p;$('authScreen').classList.add('hidden');$('mainApp').classList.remove('hidden');await loadData();await processApprovedRequests();await loadData();await processDailyCredits();await processMatureTimeProducts();await loadData();startTracker();openPage('home')}
