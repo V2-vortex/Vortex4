@@ -252,7 +252,7 @@ async function purchase(id) {
 
       await loadData();
       openPage('my');
-      toast('Purchase successful. Wallet deducted and product saved.');
+      toast('Purchase successful.');
     }
   );
             }
@@ -310,7 +310,7 @@ async function processApprovedRequests(){
 async function loadReferredUsers(){const ids=[...new Set(state.referrals.map(r=>String(r.referreduserId||'')).filter(Boolean))];state.referredUsers=(await Promise.all(ids.map(async id=>{try{return await getUserRow(id)}catch(_){try{const rows=await list(CFG.users,[eq('userId',id)]);return rows[0]||null}catch(__){return null}}}))).filter(Boolean)}
 async function loadData(){if(!profile||!rowId(profile))throw Error('Signed-in account row ID is missing.');const uid=userKey();if(!uid)throw Error('Account userId is missing; account data was not queried.');const results=await Promise.all([list(CFG.products,[eq('active',true)]),list(CFG.investments,[eq('userId',uid)]),list(CFG.deposits,[eq('userId',uid)]),list(CFG.withdrawals,[eq('userId',uid)]),list(CFG.referrals,[eq('referrerId',uid)]),list(CFG.recipients,[eq('active',true)])]);[state.products,state.investments,state.deposits,state.withdrawals,state.referrals,state.recipients]=results;state.investments.sort((a,b)=>new Date(b.createdat||b.startat)-new Date(a.createdat||a.startat));state.deposits.sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt));state.withdrawals.sort((a,b)=>new Date(b.createdat||b.$createdAt)-new Date(a.createdat||a.$createdAt));await loadReferredUsers();const vip=levelFor(activeReferralCount()).level;if(Number(profile.viplevel||1)!==vip){try{profile=await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(profile),data:{viplevel:vip}})}catch(e){console.warn('VIP level could not be saved',e)}}state.refEarned=state.referrals.filter(r=>r.bonuspaid===true).reduce((n,r)=>n+(Number(r.bonusamount)||0),0);renderProducts();$('activeCount').textContent=state.investments.filter(p=>String(p.status).toLowerCase()==='active').length;renderHistory('depositHistory',state.deposits,'deposit');renderHistory('withdrawHistory',state.withdrawals,'withdrawal');syncProfile()}
 
-$('depositForm').addEventListener('submit',async e=>{e.preventDefault();try{const amount=Number($('depAmount').value),phone=$('depPhone').value.trim(),tx=$('depTx').value.trim();if(!Number.isSafeInteger(amount)||amount<5000)throw Error('Enter a deposit of at least UGX 5,000.');if(!phoneOK(phone))throw Error('Enter a valid 07XXXXXXXX phone number.');if(!tx)throw Error('Enter the transaction ID.');if(!state.recipient||state.recipient.active!==true)await assignRecipient();const recipient=state.recipient;modal('Submit deposit',`<p>Amount: <b>${fmt(amount)}</b></p><p>Recipient: <b>${esc(recipient.phone)}</b></p><p>Transaction ID: <b>${esc(tx)}</b></p><p>Your wallet changes only after admin approval.</p>`,'Submit',async()=>{await save(CFG.deposits,{userId:userKey(),username:String(profile.username||''),phone,amount,recepient:String(recipient.phone),transactionId:tx,status:'pending',createdat:new Date().toISOString()});$('depositForm').reset();state.recipient=null;await loadData();openPage('my');toast('Deposit submitted for admin review.')})}catch(err){toast(err.message||'Deposit could not be submitted.')}});
+$('depositForm').addEventListener('submit',async e=>{e.preventDefault();try{const amount=Number($('depAmount').value),phone=$('depPhone').value.trim(),tx=$('depTx').value.trim();if(!Number.isSafeInteger(amount)||amount<5000)throw Error('Enter a deposit of at least UGX 5,000.');if(!phoneOK(phone))throw Error('Enter a valid 07XXXXXXXX phone number.');if(!tx)throw Error('Enter the transaction ID.');if(!state.recipient||state.recipient.active!==true)await assignRecipient();const recipient=state.recipient;modal('Submit deposit',`<p>Amount: <b>${fmt(amount)}</b></p><p>Recipient: <b>${esc(recipient.phone)}</b></p><p>Transaction ID: <b>${esc(tx)}</b></p><p>Your wallet changes only after admin approval.</p>`,'Submit',async()=>{await save(CFG.deposits,{userId:userKey(),username:String(profile.username||''),phone,amount,recepient:String(recipient.phone),transactionId:tx,status:'pending',createdat:new Date().toISOString()});$('depositForm').reset();state.recipient=null;await loadData();openPage('my');toast('Deposit submitted.')})}catch(err){toast(err.message||'Deposit could not be submitted.')}});
 
 $('withdrawForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -330,7 +330,7 @@ $('withdrawForm').addEventListener('submit', e => {
   );
 
   if (hour < 8 || hour >= 22)
-    return toast('Withdrawals are available from 8:00 AM to 10:00 PM Uganda time.');
+    return toast('Withdrawals are available from 8:00 AM to 10:00 PM.');
 
   if (!Number.isSafeInteger(amount) || amount < 10000 || amount > 5000000)
     return toast('Enter an amount from UGX 10,000 to UGX 5,000,000.');
@@ -402,7 +402,7 @@ $('withdrawForm').addEventListener('submit', e => {
         await loadData();
         openPage('my');
 
-        toast('Withdrawal submitted. Amount deducted from your balance.');
+        toast('Withdrawal submitted.');
       } catch (err) {
         console.error('Withdrawal submission error:', err);
         toast('Withdrawal processing failed. Refresh and check your transactions before retrying.');
