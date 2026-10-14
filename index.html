@@ -312,126 +312,44 @@ async function loadData(){if(!profile||!rowId(profile))throw Error('Signed-in ac
 
 $('depositForm').addEventListener('submit',async e=>{e.preventDefault();try{const amount=Number($('depAmount').value),phone=$('depPhone').value.trim(),tx=$('depTx').value.trim();if(!Number.isSafeInteger(amount)||amount<5000)throw Error('Enter a deposit of at least UGX 5,000.');if(!phoneOK(phone))throw Error('Enter a valid 07XXXXXXXX phone number.');if(!tx)throw Error('Enter the transaction ID.');if(!state.recipient||state.recipient.active!==true)await assignRecipient();const recipient=state.recipient;modal('Submit deposit',`<p>Amount: <b>${fmt(amount)}</b></p><p>Recipient: <b>${esc(recipient.phone)}</b></p><p>Transaction ID: <b>${esc(tx)}</b></p><p>Your wallet changes only after admin approval.</p>`,'Submit',async()=>{await save(CFG.deposits,{userId:userKey(),username:String(profile.username||''),phone,amount,recepient:String(recipient.phone),transactionId:tx,status:'pending',createdat:new Date().toISOString()});$('depositForm').reset();state.recipient=null;await loadData();openPage('my');toast('Deposit submitted.')})}catch(err){toast(err.message||'Deposit could not be submitted.')}});
 
-$('withdrawForm').addEventListener('submit', e => {
-  e.preventDefault();
-
-  const amount = Number($('withAmount').value);
-  const phone = $('withPhone').value.trim();
-  const now = new Date();
-
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Africa/Kampala',
-    hour: '2-digit',
-    hourCycle: 'h23'
-  }).formatToParts(now);
-
-  const hour = Number(
-    parts.find(p => p.type === 'hour')?.value
-  );
-
-  if (hour < 8 || hour >= 22)
-    return toast('Withdrawals are available from 8:00 AM to 10:00 PM.');
-
-  if (!Number.isSafeInteger(amount) || amount < 10000 || amount > 5000000)
-    return toast('Enter an amount from UGX 10,000 to UGX 5,000,000.');
-
-  if (!phoneOK(phone))
-    return toast('Enter a valid 07XXXXXXXX phone number.');
-
-  const pending = state.withdrawals
-    .filter(r => String(r.status || '').toLowerCase() === 'pending')
-    .reduce((n, r) => n + (Number(r.amount) || 0), 0);
-
-  const currentBalance = Number(profile.balance) || 0;
-
-  if (amount + pending > currentBalance)
-    return toast('Available balance after pending withdrawals is not enough.');
-
-  const lv = VIP.find(
-    v => v.level === (Number(profile.viplevel) || 1)
-  ) || VIP[0];
-
-  const tax = Math.round(amount * lv.tax / 100);
-
-  modal(
-    'Confirm withdrawal',
-    `<p>Amount requested: <b>${fmt(amount)}</b></p>
-     <p>Estimated tax (${lv.tax}%): <b>${fmt(tax)}</b></p>
-     <p>Estimated payout: <b>${fmt(amount - tax)}</b></p>
-     <p>Number: <b>${esc(phone)}</b></p>
-     <p>The withdrawal amount will be deducted from your available balance when your request is successfully recorded. Admin review is required.</p>`,
-    'Submit',
-    async () => {
-      try {
-        const newBalance = currentBalance - amount;
-
-        // Save the pending withdrawal request first.
-        await save(CFG.withdrawals, {
-          userId: userKey(),
-          username: String(profile.username || ''),
-          phone: String(profile.phone || ''),
-          amount,
-          paymentphone: phone,
-          status: 'pending',
-          createdat: new Date().toISOString(),
-          processedat: '',
-          transactionId: '',
-          note: '',
-          withdrawdate: dateKey(),
-          level: Number(profile.viplevel) || 1,
-          tax: lv.tax,
-          processingminutes: 0,
-          taxamount: tax,
-          netamount: amount - tax
-        });
-
-        // Deduct from the user's balance after the request is saved.
-        await db.updateRow({
-          databaseId: CFG.databaseId,
-          tableId: CFG.users,
-          rowId: rowId(profile),
-          data: {
-            balance: newBalance
-          }
-        });
-
-        profile.balance = newBalance;
-
-        $('withdrawForm').reset();
-
-        await loadData();
-        openPage('my');
-
-        toast('Withdrawal submitted.');
-      } catch (err) {
-        console.error('Withdrawal submission error:', err);
-        toast('Withdrawal processing failed. Refresh and check your transactions before retrying.');
-      }
-    }
-  );
-});
-
-function renderWithdraw() {
-  if (!profile) return;
-
-  syncProfile();
-
-  const a = Number($('withAmount').value) || 0;
-  const lv = VIP.find(
-    v => v.level === (Number(profile.viplevel) || 1)
-  ) || VIP[0];
-
-  const tax = Math.round(a * lv.tax / 100);
-
-  $('taxRate').textContent = lv.tax + '%';
-  $('taxEstimate').textContent = fmt(tax);
-  $('netEstimate').textContent = 'Net ' + fmt(Math.max(0, a - tax));
+$('withdrawForm').addEventListener('submit',e=>{
+e.preventDefault();
+const amount=Number($('withAmount').value),phone=$('withPhone').value.trim(),name=$('withAccountName').value.trim(),parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Kampala',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()),hour=Number(parts.find(p=>p.type==='hour')?.value);
+if(hour<8||hour>=22)return toast('Withdrawals are available from 8:00 AM to 10:00 PM.');
+if(!Number.isSafeInteger(amount)||amount<10000||amount>5000000)return toast('Enter an amount from UGX 10,000 to UGX 5,000,000.');
+if(!phoneOK(phone))return toast('Enter a valid 07XXXXXXXX phone number.');
+if(!name)return toast("Enter the account holder's full name.");
+const currentBalance=Number(profile.balance)||0;
+if(amount>currentBalance)return toast('Your available balance is not enough.');
+const lv=VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0],tax=Math.round(amount*lv.tax/100);
+modal('Confirm withdrawal',`<p>Account holder: <b>${esc(name)}</b></p><p>Amount requested: <b>${fmt(amount)}</b></p><p>Estimated tax (${lv.tax}%): <b>${fmt(tax)}</b></p><p>Estimated payout: <b>${fmt(amount-tax)}</b></p><p>Payment number: <b>${esc(phone)}</b></p>`,'Submit',async()=>{
+try{
+const newBalance=currentBalance-amount;
+await save(CFG.withdrawals,{userId:userKey(),username:String(profile.username||''),phone:String(profile.phone||''),accountname:name,amount,paymentphone:phone,status:'pending',createdat:new Date().toISOString(),processedat:'',transactionId:'',note:'',withdrawdate:dateKey(),level:Number(profile.viplevel)||1,tax:lv.tax,processingminutes:0,taxamount:tax,netamount:amount-tax});
+await db.updateRow({databaseId:CFG.databaseId,tableId:CFG.users,rowId:rowId(profile),data:{balance:newBalance}});
+profile.balance=newBalance;
+$('withdrawForm').reset();
+renderWithdraw();
+await loadData();
+openPage('my');
+toast('Withdrawal submitted.');
+}catch(err){
+console.error('Withdrawal submission error:',err);
+toast('Withdrawal processing failed. Check your transactions before retrying.');
 }
+});
+});
+function renderWithdraw(){
+if(!profile)return;
+syncProfile();
+const a=Number($('withAmount').value)||0,lv=VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0],tax=Math.round(a*lv.tax/100);
+$('taxRate').textContent=lv.tax+'%';
+$('taxEstimate').textContent=fmt(tax);
+$('netEstimate').textContent='Net '+fmt(Math.max(0,a-tax));
+}
+$('withAmount').addEventListener('input',renderWithdraw);
 
-$('withAmount').addEventListener('input', renderWithdraw);
-      function renderWithdraw(){if(!profile)return;syncProfile();const a=Number($('withAmount').value)||0,lv=VIP.find(v=>v.level===(Number(profile.viplevel)||1))||VIP[0],tax=Math.round(a*lv.tax/100);$('taxRate').textContent=lv.tax+'%';$('taxEstimate').textContent=fmt(tax);$('netEstimate').textContent='Net '+fmt(Math.max(0,a-tax))}$('withAmount').addEventListener('input',renderWithdraw);
-
-function renderInvite(){
+        function renderInvite(){
   const link=location.href.split('?')[0]+'?ref='+encodeURIComponent(profile?.referralcode||state.username);
   $('refLink').value=link;
   $('refCount').textContent=state.referrals.length;
